@@ -1,0 +1,45 @@
+server:
+  port: 9991
+
+spring.oauth2:
+  client:
+    accessTokenUri: ${vcap.services.sso.credentials.tokenUri}
+    userAuthorizationUri: ${vcap.services.sso.credentials.authorizationUri}
+    clientId: ${vcap.services.sso.credentials.clientId}
+    clientSecret: ${vcap.services.sso.credentials.clientSecret}
+
+
+  resource:
+    id: cloud_controller
+    jwt:
+      keyUri: ${vcap.services.sso.credentials.tokenKey}
+    userInfoUri: ${vcap.services.sso.credentials.userInfoUri}
+  check_token: ${vcap.services.sso.credentials.checkTokenUri}
+
+oauth:
+  resource: ${vcap.services.sso.credentials.apiEndpoint}
+  uaa: ${vcap.services.sso.credentials.uaaUri}
+
+nats:
+  connection: ${vcap.services.nats-provider.credentials.url}
+  registrating.triggerExpression: 0/60 * * * * ?
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.trustedanalytics: DEBUG
+    nats.client: DEBUG
+
+security:
+  ignored: /open,/*.js,/sdoc.jsp,/api-docs,/api-docs/default/*,/images/*,/lib/*,/css/*
+
+redis:
+  hostname: ${vcap.services.redis28-for-service-exposer.credentials.hostname}
+  port: ${vcap.services.redis28-for-service-exposer.credentials.port}
+
+checker.triggerExpression: 0/5 * * * * ?
+
+serviceTypes: "rstudio,ipython"
+
+restrictedServicesNames: "uaa,api,login"
+

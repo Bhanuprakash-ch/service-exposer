@@ -1,0 +1,14 @@
+---
+applications:
+- name: service-exposer
+  memory: 512M
+  instances: 1
+  host: service-exposer
+  path: target/service-exposer-${version}.jar
+  services:
+  - sso
+  - redis28-for-service-exposer
+  - nats-provider
+  env:
+    JBP_CONFIG_OPEN_JDK_JRE: '[memory_sizes: {metaspace: 128m..}]'
+    VERSION: ${version}
