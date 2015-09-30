@@ -53,7 +53,9 @@ public class CredentialsRetriver {
                 UUID spaceGUID = customCFOps.getSpaceGUID(serviceInstanceGUID);
                 String appName = serviceType + "-credentials-generator";
 
-                if (!customCFOps.appExistsInGivenSpace(appName, spaceGUID)) {
+                UUID tempAppGUID = customCFOps.getAppGUIDFromGivenSpace(appName, spaceGUID);
+
+                if (tempAppGUID==null) {
                     UUID appGUID = customCFOps.createAppInGivenSpace(appName, spaceGUID);
                     CcNewServiceBinding binding = new CcNewServiceBinding(appGUID, serviceInstanceGUID);
                     CcServiceBinding bindingGuid = ccClient.createServiceBinding(binding);
@@ -62,10 +64,12 @@ public class CredentialsRetriver {
                     ccClient.deleteApp(appGUID);
                     store.put(serviceType, serviceCredentials);
                     natsOps.registerPathInGoRouter(serviceCredentials);
+                }else{
+                    ccClient.deleteApp(tempAppGUID);
                 }
-
             }
         } catch (Exception e) {
+            LOG.error("failed to get credentials from service instance: " + serviceInstanceGUID);
             e.printStackTrace();
         }
     }

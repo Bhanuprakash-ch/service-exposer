@@ -98,16 +98,23 @@ public class CustomCFOperations {
     }
 
 
-    public boolean appExistsInGivenSpace(String appName, UUID spaceGUID) {
+    public UUID getAppGUIDFromGivenSpace(String appName, UUID spaceGUID) {
         try {
             String appsListPath = apiBaseUrl + "/v2/apps?q=name:" + appName +"&q=space_guid:" + spaceGUID.toString();
             HttpEntity<String> bindingResponse = restTemplate.exchange(appsListPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
             JsonNode envNode = mapper.readTree(bindingResponse.getBody());
-            return envNode.get("total_results").asInt() == 1 ? true : false;
+            boolean appExists = envNode.get("total_results").asInt() == 1 ? true : false;
+            if(appExists){
+                for(JsonNode node : envNode.get("resources")){
+                    return UUID.fromString(node.get("metadata").get("guid").asText());
+                }
+            }else{
+                return null;
+            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-        return true;
+        return null;
     }
 
     public UUID createAppInGivenSpace(String appName, UUID spaceGUID){
