@@ -26,7 +26,8 @@ nats:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
     org.trustedanalytics: DEBUG
     nats.client: DEBUG
 

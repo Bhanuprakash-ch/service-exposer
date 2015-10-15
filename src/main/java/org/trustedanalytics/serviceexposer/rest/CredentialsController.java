@@ -18,11 +18,18 @@ package org.trustedanalytics.serviceexposer.rest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.cloud.cc.api.CcOperations;
+import org.trustedanalytics.cloud.cc.api.CcSpace;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,15 +42,28 @@ public class CredentialsController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsController.class);
     public static final String GET_SERVICES_LIST_URL = "/rest/tools/service_instances";
 
+    private final CcOperations ccOperations;
     private final CredentialsStore store;
 
     @Autowired
-    public CredentialsController(CredentialsStore store) {
+    public CredentialsController(@Qualifier("ControllerClient") CcOperations ccOperations, CredentialsStore store) {
+        this.ccOperations = ccOperations;
         this.store = store;
     }
 
     @RequestMapping(value = GET_SERVICES_LIST_URL, method = GET, produces = APPLICATION_JSON_VALUE)
-    public Map<String, Map<String, String>> getAllCredentials(@RequestParam(required = false) UUID org, @RequestParam(required = false) UUID space,@RequestParam(required = false) String service) {
-        return store.getCredentialsInJSON(service, space);
+    public ResponseEntity<?> getAllCredentials(@RequestParam(required = true) UUID space, @RequestParam(required = true) String service) {
+
+        List<UUID> spaces = new ArrayList<>();
+        for (CcSpace currentSpace : ccOperations.getSpaces().toBlocking().toIterable()) {
+            spaces.add(currentSpace.getGuid());
+        }
+
+        if(spaces.contains(space)){
+            Map<String, Map<String, String>> r = store.getCredentialsInJSON(service, space);
+            return new ResponseEntity<Map<String, Map<String, String>>>(r, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
+        }
     }
 }
