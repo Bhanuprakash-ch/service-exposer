@@ -41,6 +41,10 @@ public class CheckerJob {
         this.credentialsRetriver = credentialsRetriver;
         this.credentialsStore = store;
         this.serviceTypes = serviceTypes;
+
+        for (String serviceType : serviceTypes){
+            credentialsStore.cleanStore(serviceType);
+        }
     }
 
     public void run() {

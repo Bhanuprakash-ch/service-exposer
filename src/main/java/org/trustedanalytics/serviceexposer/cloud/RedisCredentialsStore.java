@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
@@ -88,5 +89,18 @@ public class RedisCredentialsStore implements CredentialsStore {
             LOG.error(e.getMessage(), e);
         }
         return Collections.emptyMap();
+    }
+
+    @Override
+    public void cleanStore(String serviceType) {
+        try {
+            for (String serviceGUID : hashOps.keys(serviceType))
+            {
+                LOG.info("deleted "+serviceType + "\t" + serviceGUID, "");
+                hashOps.delete(serviceType, serviceGUID);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 }

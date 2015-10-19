@@ -36,4 +36,5 @@ public interface CredentialsStore {
 
     Map<String, Map<String, String>> getCredentialsInJSON(String serviceType, UUID spaceGUID);
 
+    void cleanStore(String serviceType);
 }
