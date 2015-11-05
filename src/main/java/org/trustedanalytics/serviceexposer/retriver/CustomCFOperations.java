@@ -45,7 +45,7 @@ public class CustomCFOperations {
         this.mapper = new ObjectMapper();
     }
 
-    public UUID getSpaceGUID(UUID serviceGuidGUID) {
+    public UUID getSpaceGUID(UUID serviceGuidGUID) throws Exception {
         try {
             String serviceInfoPath = apiBaseUrl + "/v2/service_instances/" + serviceGuidGUID.toString();
             HttpEntity<String> bindingResponse = restTemplate.exchange(serviceInfoPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
@@ -57,46 +57,9 @@ public class CustomCFOperations {
 
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+            throw e;
         }
-        return null;
     }
-
-    public  Set<String>  getServicesForGivenPlan(String planGuidGUID) {
-        try {
-            String serviceInfoPath = apiBaseUrl + "/v2/service_instances?q=service_plan_guid:" + planGuidGUID;
-            HttpEntity<String> bindingResponse = restTemplate.exchange(serviceInfoPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
-            JsonNode serviceRootNode = mapper.readTree(bindingResponse.getBody());
-            JsonNode resourcesNode = serviceRootNode.get("resources");
-
-            Set<String> serviceGuids = new HashSet<>();
-            for(JsonNode node : resourcesNode ){
-                serviceGuids.add(node.get("metadata").get("guid").asText());
-            }
-            return serviceGuids;
-
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-
-    public String getServiceName(UUID serviceGuidGUID) {
-        try {
-            String serviceInfoPath = apiBaseUrl + "/v2/service_instances/" + serviceGuidGUID.toString();
-            HttpEntity<String> bindingResponse = restTemplate.exchange(serviceInfoPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
-            JsonNode serviceRootNode = mapper.readTree(bindingResponse.getBody());
-            JsonNode serviceEntity = serviceRootNode.get("entity");
-            JsonNode spaceNode = serviceEntity.get("name");
-            String serviceName = spaceNode.asText();
-            return serviceName;
-
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
 
     public UUID getAppGUIDFromGivenSpace(String appName, UUID spaceGUID) {
         try {
@@ -133,73 +96,5 @@ public class CustomCFOperations {
             LOG.error(e.getMessage(), e);
         }
         return null;
-    }
-
-    public CredentialProperties getCredentialsFromApp(String serviceType, UUID appGuid, UUID serviceGUID, UUID spaceGuid) {
-        try {
-            String envPath = apiBaseUrl + "/v2/apps/" + appGuid.toString() + "/env";
-            HttpEntity<String> envRes = restTemplate.exchange(envPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
-            JsonNode envNode = mapper.readTree(envRes.getBody());
-            JsonNode servicesNode = envNode.get("system_env_json").get("VCAP_SERVICES").get(serviceType);
-            JsonNode firstServiceInstancesNode = servicesNode.elements().next();
-            String serviceName = firstServiceInstancesNode.get("name").asText();
-            JsonNode credentialsNode = firstServiceInstancesNode.get("credentials");
-            String ipAddress = credentialsNode.get("hostname").asText();
-            String portNumber = credentialsNode.get("port").asText();
-            String password = credentialsNode.get("password").asText();
-            String username = serviceType.equals("ipython") ? "" : credentialsNode.get("username").asText();
-            String domainName = apiBaseUrl.split("api")[1];
-            CredentialProperties serviceInfo = new CredentialProperties(domainName, serviceGUID.toString(), spaceGuid.toString(), serviceName, ipAddress, portNumber, username, password);
-            return serviceInfo;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-    public CredentialProperties getCredentialsUsingServiceKeys(String serviceType, String serviceName, UUID spaceGUID, UUID serviceGUID) {
-        try {
-            String appsListPath = apiBaseUrl + "/v2/service_keys";
-            String serviceKeysName = UUID.randomUUID() + "-keys";
-            JsonNode responseNode = createServiceKeys(serviceGUID, serviceKeysName);
-            String serviceKeysGUID = responseNode.get("metadata").get("guid").asText();
-            JsonNode serviceEntity = responseNode.get("entity");
-            JsonNode credentialsNode = serviceEntity.get("credentials");
-            String ipAddress = credentialsNode.get("hostname").asText();
-            String portNumber = credentialsNode.get("port").asText();
-            String password = credentialsNode.get("password").asText();
-            String username = serviceType.equals("ipython") ? "" : credentialsNode.get("username").asText();
-            String domainName = apiBaseUrl.split("api")[1];
-            CredentialProperties serviceInfo = new CredentialProperties(domainName, serviceGUID.toString(), spaceGUID.toString(), serviceName, ipAddress, portNumber, username, password);
-            deleteServiceKeys(serviceKeysGUID);
-            return serviceInfo;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-    public JsonNode createServiceKeys(UUID serviceGUID,String serviceKeysName){
-        try {
-            String appsListPath = apiBaseUrl + "/v2/service_keys";
-            ObjectNode node = mapper.getNodeFactory().objectNode();
-            node.put("service_instance_guid", serviceGUID.toString());
-            node.put("name", serviceKeysName);
-            HttpEntity<String> serviceKeyCreateResponse = restTemplate.exchange(appsListPath, HttpMethod.POST, new HttpEntity<>(node.toString()), String.class, "");
-            JsonNode serviceRootNode = mapper.readTree(serviceKeyCreateResponse.getBody());
-            return serviceRootNode;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-    public void deleteServiceKeys(String serviceKeysGUID) {
-        try {
-            String appsListPath = apiBaseUrl + "/v2/service_keys/" + serviceKeysGUID.toString();
-            HttpEntity<String> serviceKeyCreateResponse = restTemplate.exchange(appsListPath, HttpMethod.DELETE, new HttpEntity<>(""), String.class, "");
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
     }
 }

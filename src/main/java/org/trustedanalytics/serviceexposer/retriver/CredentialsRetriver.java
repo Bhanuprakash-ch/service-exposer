@@ -51,20 +51,24 @@ public class CredentialsRetriver {
             if (!store.exists(serviceType, serviceInstanceGUID)) {
                 LOG.info("service instance created: " + serviceInstanceGUID);
                 UUID spaceGUID = customCFOps.getSpaceGUID(serviceInstanceGUID);
+                LOG.info("instance created in space: " + spaceGUID);
                 String appName = serviceType + "-credentials-generator";
 
                 UUID tempAppGUID = customCFOps.getAppGUIDFromGivenSpace(appName, spaceGUID);
 
                 if (tempAppGUID==null) {
                     UUID appGUID = customCFOps.createAppInGivenSpace(appName, spaceGUID);
+                    LOG.info("temporary app created: " + appGUID);
                     CcNewServiceBinding binding = new CcNewServiceBinding(appGUID, serviceInstanceGUID);
                     CcServiceBinding bindingGuid = ccClient.createServiceBinding(binding);
                     CredentialProperties serviceCredentials = getCredentialsFromApp(serviceType, appGUID, serviceInstanceGUID, spaceGUID);
                     ccClient.deleteServiceBinding(bindingGuid.getMetadata().getGuid());
                     ccClient.deleteApp(appGUID);
+                    LOG.info("temporary app deleted: " + appGUID);
                     store.put(serviceType, serviceCredentials);
                     natsOps.registerPathInGoRouter(serviceCredentials);
                 }else{
+                    LOG.info("deleting temporary app: " + tempAppGUID);
                     ccClient.deleteApp(tempAppGUID);
                 }
             }
@@ -74,7 +78,7 @@ public class CredentialsRetriver {
         }
     }
 
-    private CredentialProperties getCredentialsFromApp(String serviceType, UUID appGUID, UUID serviceGUID, UUID spaceGuid) {
+    private CredentialProperties getCredentialsFromApp(String serviceType, UUID appGUID, UUID serviceGUID, UUID spaceGuid) throws Exception{
         try {
             CcAppEnv env = ccClient.getAppEnv(appGUID).toBlocking().single();
             String filter = "$..[?(@.label==\'" + serviceType + "\')]";
@@ -88,8 +92,8 @@ public class CredentialsRetriver {
             return serviceInfo;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+            throw e;
         }
-        return null;
     }
 
     public void deleteServiceInstance(String serviceType, UUID serviceInstanceGUID) {
@@ -98,17 +102,6 @@ public class CredentialsRetriver {
             CredentialProperties serviceInfo = store.get(serviceType, serviceInstanceGUID);
             store.delete(serviceType, serviceInstanceGUID);
             natsOps.unregisterPathInGoRouter(serviceInfo);
-        }
-    }
-
-    private void saveCredentialsUsingServiceKeys(String serviceType, UUID serviceInstanceGUID) {
-        if (!store.exists(serviceType, serviceInstanceGUID)) {
-            LOG.info("service instance created: " + serviceInstanceGUID);
-            String name = customCFOps.getServiceName(serviceInstanceGUID);
-            UUID spaceGUID = customCFOps.getSpaceGUID(serviceInstanceGUID);
-            CredentialProperties serviceCredentials = customCFOps.getCredentialsUsingServiceKeys(serviceType, name, spaceGUID, serviceInstanceGUID);
-            store.put(serviceType, serviceCredentials);
-            natsOps.registerPathInGoRouter(serviceCredentials);
         }
     }
 }
