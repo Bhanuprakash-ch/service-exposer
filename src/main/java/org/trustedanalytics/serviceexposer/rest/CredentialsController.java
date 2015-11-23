@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.serviceexposer.rest;
 
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.CcSpace;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 
-import java.util.ArrayList;
-import java.util.List;
+import rx.Observable;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -41,6 +45,7 @@ public class CredentialsController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsController.class);
     public static final String GET_SERVICES_LIST_URL = "/rest/tools/service_instances";
+    public static final String GET_CREDENTIALS_LIST_FOR_ORG_URL = "/rest/credentials/organizations/{org}";
 
     private final CcOperations ccOperations;
     private final CredentialsStore store;
@@ -54,16 +59,36 @@ public class CredentialsController {
     @RequestMapping(value = GET_SERVICES_LIST_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllCredentials(@RequestParam(required = true) UUID space, @RequestParam(required = true) String service) {
 
-        List<UUID> spaces = new ArrayList<>();
-        for (CcSpace currentSpace : ccOperations.getSpaces().toBlocking().toIterable()) {
-            spaces.add(currentSpace.getGuid());
-        }
+        return ccOperations.getSpace(space)
+            .map(s -> new ResponseEntity<>(store.getCredentialsInJSON(service, s.getGuid()), HttpStatus.OK))
+            .onErrorReturn(er -> {
+                LOGGER.error("Exception occurred:", er);
+                return new ResponseEntity<>(Collections.emptyMap(), HttpStatus.UNAUTHORIZED);})
+            .toBlocking()
+            .single();
+    }
 
-        if(spaces.contains(space)){
-            Map<String, Map<String, String>> r = store.getCredentialsInJSON(service, space);
-            return new ResponseEntity<Map<String, Map<String, String>>>(r, HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
-        }
+    @RequestMapping(value = GET_CREDENTIALS_LIST_FOR_ORG_URL, method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAllCredentialsInOrg(@PathVariable UUID org, @RequestParam(required = true) String service) {
+
+        return ccOperations.getSpaces(org)
+            .map(s -> store.getCredentialsInJSON(service, s.getGuid()))
+            .flatMap(json -> Observable.from(getFlattenedCredentials(json)))
+            .toList()
+            .map(instances -> new ResponseEntity<>(instances, HttpStatus.OK))
+            .onErrorReturn(er -> {
+                LOGGER.error("Exception occurred:", er);
+                return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);})
+            .toBlocking()
+            .single();
+    }
+
+    private static Collection<Map<String, String>> getFlattenedCredentials(Map<String, Map<String, String>> instances) {
+        return instances.entrySet().stream()
+            .map(entry -> ImmutableMap.<String, String>builder()
+                .putAll(entry.getValue())
+                .put("name", entry.getKey())
+                .build())
+            .collect(Collectors.toList());
     }
 }
