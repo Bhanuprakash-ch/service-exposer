@@ -24,10 +24,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.web.client.RestTemplate;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 
@@ -63,15 +60,15 @@ public class CustomCFOperations {
 
     public UUID getAppGUIDFromGivenSpace(String appName, UUID spaceGUID) {
         try {
-            String appsListPath = apiBaseUrl + "/v2/apps?q=name:" + appName +"&q=space_guid:" + spaceGUID.toString();
+            String appsListPath = apiBaseUrl + "/v2/apps?q=name:" + appName + "&q=space_guid:" + spaceGUID.toString();
             HttpEntity<String> bindingResponse = restTemplate.exchange(appsListPath, HttpMethod.GET, new HttpEntity<>(""), String.class, "");
             JsonNode envNode = mapper.readTree(bindingResponse.getBody());
             boolean appExists = envNode.get("total_results").asInt() == 1 ? true : false;
-            if(appExists){
-                for(JsonNode node : envNode.get("resources")){
+            if (appExists) {
+                for (JsonNode node : envNode.get("resources")) {
                     return UUID.fromString(node.get("metadata").get("guid").asText());
                 }
-            }else{
+            } else {
                 return null;
             }
         } catch (Exception e) {
@@ -80,7 +77,7 @@ public class CustomCFOperations {
         return null;
     }
 
-    public UUID createAppInGivenSpace(String appName, UUID spaceGUID){
+    public UUID createAppInGivenSpace(String appName, UUID spaceGUID) {
         try {
             String appsListPath = apiBaseUrl + "/v2/apps";
             ObjectNode node = mapper.getNodeFactory().objectNode();
@@ -91,6 +88,7 @@ public class CustomCFOperations {
             JsonNode appMetadata = appRootNode.get("metadata");
             JsonNode appGuidNode = appMetadata.get("guid");
             String appGuidText = appGuidNode.asText();
+            LOG.info("Created temporary app : " + appGuidText);
             return UUID.fromString(appGuidText);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

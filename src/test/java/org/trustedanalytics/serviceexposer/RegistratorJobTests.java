@@ -28,9 +28,6 @@ import org.trustedanalytics.serviceexposer.nats.registrator.RegistratorJob;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,18 +46,23 @@ public class RegistratorJobTests {
     @Mock
     private CredentialsStore store;
 
+    @Mock
+    private CredentialProperties hueCredentials;
+
     private List<String> serviceTypes;
+
 
     @Before
     public void setup() {
         serviceTypes = ImmutableList.of(SERVICE_TYPE_RSTUDIO, SERVICE_TYPE_IPYTHON);
-        sut = new RegistratorJob(natsOps, store,serviceTypes);
+        hueCredentials = new CredentialProperties("","","","","","","","","");
+        sut = new RegistratorJob(natsOps, store,serviceTypes,hueCredentials);
     }
 
     @Test
-    public void testRegistratorJobRunMethodForIPythonServices() {
+    public void testRegistratorJobRunMethodForIPythonServices(){
 
-        CredentialProperties entry = new CredentialProperties("","","","ipythonInstance","","","","");
+        CredentialProperties entry = new CredentialProperties("","","","ipythonInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
         when(store.getAllCredentialsEntries(SERVICE_TYPE_IPYTHON)).thenReturn(credentials);
         sut.run();
@@ -68,9 +70,9 @@ public class RegistratorJobTests {
     }
 
     @Test
-    public void testRegistratorJobRunMethodForRStudioServices() {
+    public void testRegistratorJobRunMethodForRStudioServices(){
 
-        CredentialProperties entry = new CredentialProperties("","","","rstudioInstance","","","","");
+        CredentialProperties entry = new CredentialProperties("","","","rstudioInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
         when(store.getAllCredentialsEntries(SERVICE_TYPE_RSTUDIO)).thenReturn(credentials);
         sut.run();

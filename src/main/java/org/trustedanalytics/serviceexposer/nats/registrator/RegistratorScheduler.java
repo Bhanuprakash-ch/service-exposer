@@ -30,7 +30,7 @@ public class RegistratorScheduler {
     private final String natsTriggerExpression;
 
     @Autowired
-    public RegistratorScheduler(RegistratorJob natsRegisteringJob,String natsTriggerExpression) {
+    public RegistratorScheduler(RegistratorJob natsRegisteringJob, String natsTriggerExpression) {
         this.registeringJob = natsRegisteringJob;
         this.natsTriggerExpression = natsTriggerExpression;
     }

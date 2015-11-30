@@ -30,7 +30,7 @@ public class CheckerScheduler {
     private final String checkerTriggerExpression;
 
     @Autowired
-    public CheckerScheduler(CheckerJob checkingJob, String checkerTriggerExpression ) {
+    public CheckerScheduler(CheckerJob checkingJob, String checkerTriggerExpression) {
         this.checkingJob = checkingJob;
         this.checkerTriggerExpression = checkerTriggerExpression;
     }

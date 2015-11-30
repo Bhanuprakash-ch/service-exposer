@@ -67,7 +67,7 @@ public class RetriverConfig {
     @Qualifier("CredentialRetriverClient")
     protected CcOperations ccPrivilegedClient() {
         return new FeignClient(apiBaseUrl, builder -> builder
-                .requestInterceptor(template -> template.header("Authorization", "bearer "+clientRestTemplate().getAccessToken().toString()))
+                .requestInterceptor(template -> template.header("Authorization", "bearer " + clientRestTemplate().getAccessToken().toString()))
                 .logLevel(Logger.Level.NONE));
     }
 
@@ -77,13 +77,13 @@ public class RetriverConfig {
     }
 
     @Bean
-    protected CredentialsRetriver credentialsRetriver (NatsMessagingQueue natsOps,CredentialsStore redisCredentialsStore) {
-        return new CredentialsRetriver(ccPrivilegedClient(), customCFOperations(),redisCredentialsStore,natsOps, apiBaseUrl);
+    protected CredentialsRetriver credentialsRetriver(NatsMessagingQueue natsOps, CredentialsStore redisCredentialsStore) {
+        return new CredentialsRetriver(ccPrivilegedClient(), customCFOperations(), redisCredentialsStore, natsOps, apiBaseUrl);
     }
 
     @Bean
-    protected ServicesRetriver servicesRetriver () {
-        return new ServicesRetriver(ccPrivilegedClient(), apiBaseUrl,restricedNames);
+    protected ServicesRetriver servicesRetriver() {
+        return new ServicesRetriver(ccPrivilegedClient(), apiBaseUrl, restricedNames);
     }
 
     @Bean

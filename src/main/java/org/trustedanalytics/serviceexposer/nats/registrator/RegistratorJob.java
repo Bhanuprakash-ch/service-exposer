@@ -30,14 +30,20 @@ public class RegistratorJob {
     private NatsMessagingQueue natsOps;
     private CredentialsStore store;
     private List<String> serviceTypes;
+    private CredentialProperties hueCredentials;
 
-    public RegistratorJob(NatsMessagingQueue natsOps, CredentialsStore store, List<String> serviceTypes) {
+    public RegistratorJob(NatsMessagingQueue natsOps, CredentialsStore store, List<String> serviceTypes, CredentialProperties hueCredentials) {
         this.natsOps = natsOps;
         this.store = store;
         this.serviceTypes = serviceTypes;
+        this.hueCredentials = hueCredentials;
     }
 
     public void run() {
+        if (!hueCredentials.getIpaddress().equals("")) {
+            natsOps.registerPathInGoRouter(hueCredentials);
+        }
+
         for (String serviceType : serviceTypes) {
             for (CredentialProperties entry : store.getAllCredentialsEntries(serviceType)) {
                 natsOps.registerPathInGoRouter(entry);

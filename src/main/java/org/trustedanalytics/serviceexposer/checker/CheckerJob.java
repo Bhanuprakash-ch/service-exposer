@@ -36,13 +36,13 @@ public class CheckerJob {
     private final List<String> serviceTypes;
 
     @Autowired
-    public CheckerJob(ServicesRetriver servicesRetriver,CredentialsRetriver credentialsRetriver, CredentialsStore store, List<String> serviceTypes) {
+    public CheckerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore store, List<String> serviceTypes) {
         this.servicesRetriver = servicesRetriver;
         this.credentialsRetriver = credentialsRetriver;
         this.credentialsStore = store;
         this.serviceTypes = serviceTypes;
 
-        for (String serviceType : serviceTypes){
+        for (String serviceType : serviceTypes) {
             credentialsStore.cleanStore(serviceType);
         }
     }

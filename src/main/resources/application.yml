@@ -44,3 +44,8 @@ serviceTypes: "rstudio,ipython,h2o"
 
 restrictedServicesNames: "uaa,api,login"
 
+hue:
+  available: ${vcap.services.external-tools.credentials.hue.available}
+  url: ${vcap.services.external-tools.credentials.hue.url}
+  host: ${vcap.services.external-tools.credentials.hue.internal_host}
+

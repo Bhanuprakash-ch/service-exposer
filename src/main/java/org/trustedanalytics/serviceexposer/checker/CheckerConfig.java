@@ -43,8 +43,8 @@ public class CheckerConfig {
     }
 
     @Bean
-    public CheckerJob checkerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver,CredentialsStore store, MessagingQueue nats) {
-        return new CheckerJob(servicesRetriver,credentialsRetriver, store, serviceTypes);
+    public CheckerJob checkerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore store, MessagingQueue nats) {
+        return new CheckerJob(servicesRetriver, credentialsRetriver, store, serviceTypes);
     }
 
     @Bean(initMethod = "start")

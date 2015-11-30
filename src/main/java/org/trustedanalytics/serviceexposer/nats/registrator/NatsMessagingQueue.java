@@ -36,13 +36,21 @@ public class NatsMessagingQueue implements MessagingQueue {
 
     @Override
     public void registerPathInGoRouter(CredentialProperties serviceInfo) {
-        nats.publish(NATS_ROUTE_REGISTER, serviceInfo.retrieveRegisterMsg());
-        LOG.info("route registered: {}:{} -> {}", serviceInfo.getIpaddress(), serviceInfo.getPort(), serviceInfo.getHostname());
+        nats.publish(NATS_ROUTE_REGISTER, serviceInfo.toString());
+        LOG.info("route registered: {}:{} -> {}",
+                serviceInfo.getIpaddress(),
+                serviceInfo.getPort(),
+                serviceInfo.getHostname()
+        );
     }
 
     @Override
     public void unregisterPathInGoRouter(CredentialProperties serviceInfo) {
-        nats.publish(NATS_ROUTE_UNREGISTER, serviceInfo.retrieveRegisterMsg());
-        LOG.info("route unregistered: {} -> {}:{}", serviceInfo.getHostname(), serviceInfo.getIpaddress(), serviceInfo.getPort());
+        nats.publish(NATS_ROUTE_UNREGISTER, serviceInfo.toString());
+        LOG.info("route unregistered: {} -> {}:{}",
+                serviceInfo.getHostname(),
+                serviceInfo.getIpaddress(),
+                serviceInfo.getPort()
+        );
     }
 }

@@ -9,6 +9,7 @@ applications:
   - sso
   - redis28-for-service-exposer
   - nats-provider
+  - external-tools
   env:
     JBP_CONFIG_OPEN_JDK_JRE: '[memory_sizes: {metaspace: 128m..}]'
     VERSION: ${version}

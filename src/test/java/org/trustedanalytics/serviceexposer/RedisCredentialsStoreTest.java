@@ -18,7 +18,6 @@ package org.trustedanalytics.serviceexposer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,8 +30,8 @@ import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 import org.trustedanalytics.serviceexposer.cloud.RedisCredentialsStore;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -76,7 +75,7 @@ public class RedisCredentialsStoreTest {
     @Test
     public void testServiceInstanceExists() {
         UUID randomGUID = UUID.randomUUID();
-        CredentialProperties existingEntry = new CredentialProperties("",randomGUID.toString(),"","","","","","");
+        CredentialProperties existingEntry = new CredentialProperties("",randomGUID.toString(),"","","","","","","");
         when(mockHashOps.get(SERVICE_TYPE, randomGUID.toString())).thenReturn(existingEntry);
         boolean eligible = sut.exists(SERVICE_TYPE, randomGUID);
         assertEquals(true, eligible);
@@ -94,7 +93,7 @@ public class RedisCredentialsStoreTest {
         when(mockCredentialsProperties.retriveMapForm()).thenReturn(entry);
         when(mockCredentialsProperties.getSpaceGuid()).thenReturn(randomSpaceGUID.toString());
 
-        CredentialProperties existingEntry = new CredentialProperties("",randomServiceGUID,randomSpaceGUID.toString(),serviceName,"","","","");
+        CredentialProperties existingEntry = new CredentialProperties("",randomServiceGUID,randomSpaceGUID.toString(),serviceName,"","","","","");
 
         List<Object> serviceEntries = ImmutableList.of(existingEntry);
         when(mockHashOps.values(SERVICE_TYPE)).thenReturn(serviceEntries);

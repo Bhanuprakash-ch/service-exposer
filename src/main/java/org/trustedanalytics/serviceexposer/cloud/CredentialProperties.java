@@ -17,12 +17,16 @@ package org.trustedanalytics.serviceexposer.cloud;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 @Data
 public class CredentialProperties {
+    private static final Logger LOG = LoggerFactory.getLogger(CredentialProperties.class);
 
     private String serviceInstaceGUID;
     private String spaceGuid;
@@ -33,11 +37,15 @@ public class CredentialProperties {
     private String login;
     private String password;
 
-    public CredentialProperties(String domainName, String serviceInstaceGUID, String spaceGuid, String name, String IPAdress, String PortNumber, String login, String password) {
+    public CredentialProperties(String domainName, String serviceInstaceGUID, String spaceGuid, String name, String IPAdress, String PortNumber, String hostname, String login, String password) {
         this.serviceInstaceGUID = serviceInstaceGUID;
         this.spaceGuid = spaceGuid;
         this.name = name;
-        this.hostname = name.replaceAll("[^A-Za-z0-9]", "_")+"-"+serviceInstaceGUID + domainName;
+        if (hostname.equals("")) {
+            this.hostname = name.replaceAll("[^A-Za-z0-9]", "_") + "-" + serviceInstaceGUID + domainName;
+        } else {
+            this.hostname = hostname;
+        }
         this.ipaddress = IPAdress;
         this.port = PortNumber;
         this.login = login;
@@ -64,22 +72,17 @@ public class CredentialProperties {
 
     @Override
     public String toString() {
-        return "Service Instance [serviceInstaceGUID=" + serviceInstaceGUID + ", hostname=" + hostname + ", login=" + login
-                + "]";
+        return "{\"host\":\"" + ipaddress +
+                "\",\"port\":" + port +
+                ",\"uris\":[\"" + hostname + "\"]}";
     }
 
     public Map<String, String> retriveMapForm() {
-
         return ImmutableMap.
                 of("guid", serviceInstaceGUID,
                         "hostname", hostname,
                         "login", login,
                         "password", password);
 
-    }
-
-    public String retrieveRegisterMsg() {
-        String registerMsg = "{\"host\":\"" + ipaddress + "\",\"port\":" + port + ",\"uris\":[\"" + hostname + "\"]}";
-        return registerMsg;
     }
 }

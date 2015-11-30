@@ -94,9 +94,8 @@ public class RedisCredentialsStore implements CredentialsStore {
     @Override
     public void cleanStore(String serviceType) {
         try {
-            for (String serviceGUID : hashOps.keys(serviceType))
-            {
-                LOG.info("deleted "+serviceType + "\t" + serviceGUID, "");
+            for (String serviceGUID : hashOps.keys(serviceType)) {
+                LOG.info("deleted " + serviceType + "\t" + serviceGUID, "");
                 hashOps.delete(serviceType, serviceGUID);
             }
         } catch (Exception e) {

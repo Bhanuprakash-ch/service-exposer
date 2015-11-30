@@ -60,35 +60,37 @@ public class CredentialsController {
     public ResponseEntity<?> getAllCredentials(@RequestParam(required = true) UUID space, @RequestParam(required = true) String service) {
 
         return ccOperations.getSpace(space)
-            .map(s -> new ResponseEntity<>(store.getCredentialsInJSON(service, s.getGuid()), HttpStatus.OK))
-            .onErrorReturn(er -> {
-                LOGGER.error("Exception occurred:", er);
-                return new ResponseEntity<>(Collections.emptyMap(), HttpStatus.UNAUTHORIZED);})
-            .toBlocking()
-            .single();
+                .map(s -> new ResponseEntity<>(store.getCredentialsInJSON(service, s.getGuid()), HttpStatus.OK))
+                .onErrorReturn(er -> {
+                    LOGGER.error("Exception occurred:", er);
+                    return new ResponseEntity<>(Collections.emptyMap(), HttpStatus.UNAUTHORIZED);
+                })
+                .toBlocking()
+                .single();
     }
 
     @RequestMapping(value = GET_CREDENTIALS_LIST_FOR_ORG_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllCredentialsInOrg(@PathVariable UUID org, @RequestParam(required = true) String service) {
 
         return ccOperations.getSpaces(org)
-            .map(s -> store.getCredentialsInJSON(service, s.getGuid()))
-            .flatMap(json -> Observable.from(getFlattenedCredentials(json)))
-            .toList()
-            .map(instances -> new ResponseEntity<>(instances, HttpStatus.OK))
-            .onErrorReturn(er -> {
-                LOGGER.error("Exception occurred:", er);
-                return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);})
-            .toBlocking()
-            .single();
+                .map(s -> store.getCredentialsInJSON(service, s.getGuid()))
+                .flatMap(json -> Observable.from(getFlattenedCredentials(json)))
+                .toList()
+                .map(instances -> new ResponseEntity<>(instances, HttpStatus.OK))
+                .onErrorReturn(er -> {
+                    LOGGER.error("Exception occurred:", er);
+                    return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);
+                })
+                .toBlocking()
+                .single();
     }
 
     private static Collection<Map<String, String>> getFlattenedCredentials(Map<String, Map<String, String>> instances) {
         return instances.entrySet().stream()
-            .map(entry -> ImmutableMap.<String, String>builder()
-                .putAll(entry.getValue())
-                .put("name", entry.getKey())
-                .build())
-            .collect(Collectors.toList());
+                .map(entry -> ImmutableMap.<String, String>builder()
+                        .putAll(entry.getValue())
+                        .put("name", entry.getKey())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

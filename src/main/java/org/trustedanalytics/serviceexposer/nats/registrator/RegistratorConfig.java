@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 
 import java.util.List;
@@ -37,11 +38,21 @@ public class RegistratorConfig {
     @Value("#{'${serviceTypes}'.split(',')}")
     private List<String> serviceTypes;
 
+    @Value("${hue.available}")
+    private String hueAvailable;
+
+    @Value("${hue.url}")
+    private String hueUrl;
+
+    @Value("${hue.host}")
+    private String hueCredentials;
+
+
     @Bean
-        public Nats nats(ApplicationEventPublisher applicationEventPublisher){
+    public Nats nats(ApplicationEventPublisher applicationEventPublisher) {
         return new NatsBuilder(applicationEventPublisher)
-            .addHost(natsUri)
-            .connect();
+                .addHost(natsUri)
+                .connect();
     }
 
     @Bean
@@ -50,13 +61,23 @@ public class RegistratorConfig {
     }
 
     @Bean
-    public RegistratorJob registratorJob(NatsMessagingQueue nats,CredentialsStore store) {
-        return new RegistratorJob(nats,store,serviceTypes);
+    protected CredentialProperties hueCredentials() {
+        if (hueAvailable.equals("true") && !hueCredentials.contains("None")) {
+            String[] ipAndPort = hueCredentials.split(":");
+            String url = hueUrl.split("/")[2];
+            return new CredentialProperties("", "", "", "", ipAndPort[0], ipAndPort[1], url, "", "");
+        } else {
+            return new CredentialProperties("", "", "", "", "", "", "", "", "");
+        }
+    }
+
+    @Bean
+    public RegistratorJob registratorJob(NatsMessagingQueue nats, CredentialsStore store) {
+        return new RegistratorJob(nats, store, serviceTypes, hueCredentials());
     }
 
     @Bean(initMethod = "start")
     public RegistratorScheduler registratorScheduler(RegistratorJob registratorJob) {
         return new RegistratorScheduler(registratorJob, natsTriggerExpression);
     }
-
 }

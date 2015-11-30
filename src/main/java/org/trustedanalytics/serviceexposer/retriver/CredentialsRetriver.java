@@ -15,7 +15,6 @@
  */
 package org.trustedanalytics.serviceexposer.retriver;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trustedanalytics.cloud.cc.api.CcAppEnv;
@@ -56,7 +55,7 @@ public class CredentialsRetriver {
 
                 UUID tempAppGUID = customCFOps.getAppGUIDFromGivenSpace(appName, spaceGUID);
 
-                if (tempAppGUID==null) {
+                if (tempAppGUID == null) {
                     UUID appGUID = customCFOps.createAppInGivenSpace(appName, spaceGUID);
                     LOG.info("temporary app created: " + appGUID);
                     CcNewServiceBinding binding = new CcNewServiceBinding(appGUID, serviceInstanceGUID);
@@ -67,7 +66,7 @@ public class CredentialsRetriver {
                     LOG.info("temporary app deleted: " + appGUID);
                     store.put(serviceType, serviceCredentials);
                     natsOps.registerPathInGoRouter(serviceCredentials);
-                }else{
+                } else {
                     LOG.info("deleting temporary app: " + tempAppGUID);
                     ccClient.deleteApp(tempAppGUID);
                 }
@@ -78,7 +77,7 @@ public class CredentialsRetriver {
         }
     }
 
-    private CredentialProperties getCredentialsFromApp(String serviceType, UUID appGUID, UUID serviceGUID, UUID spaceGuid) throws Exception{
+    private CredentialProperties getCredentialsFromApp(String serviceType, UUID appGUID, UUID serviceGUID, UUID spaceGuid) {
         try {
             CcAppEnv env = ccClient.getAppEnv(appGUID).toBlocking().single();
             String filter = "$..[?(@.label==\'" + serviceType + "\')]";
@@ -88,20 +87,24 @@ public class CredentialsRetriver {
             String password = env.findCredentialsPropertyByServiceLabel(serviceType, "password");
             String username = serviceType.equals("ipython") ? "" : env.findCredentialsPropertyByServiceLabel(serviceType, "username");
             String domainName = apiBaseUrl.split("api")[1];
-            CredentialProperties serviceInfo = new CredentialProperties(domainName, serviceGUID.toString(), spaceGuid.toString(), serviceName, ipAddress, portNumber, username, password);
+            CredentialProperties serviceInfo = new CredentialProperties(domainName, serviceGUID.toString(), spaceGuid.toString(), serviceName, ipAddress, portNumber, "", username, password);
             return serviceInfo;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-            throw e;
         }
+        return null;
     }
 
     public void deleteServiceInstance(String serviceType, UUID serviceInstanceGUID) {
-        if (store.exists(serviceType, serviceInstanceGUID)) {
-            LOG.info("service instance deleted: " + serviceInstanceGUID);
-            CredentialProperties serviceInfo = store.get(serviceType, serviceInstanceGUID);
-            store.delete(serviceType, serviceInstanceGUID);
-            natsOps.unregisterPathInGoRouter(serviceInfo);
+        try {
+            if (store.exists(serviceType, serviceInstanceGUID)) {
+                LOG.info("service instance deleted: " + serviceInstanceGUID);
+                CredentialProperties serviceInfo = store.get(serviceType, serviceInstanceGUID);
+                store.delete(serviceType, serviceInstanceGUID);
+                natsOps.unregisterPathInGoRouter(serviceInfo);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
         }
     }
 }
