@@ -49,3 +49,5 @@ hue:
   url: ${vcap.services.external-tools.credentials.hue.url}
   host: ${vcap.services.external-tools.credentials.hue.internal_host}
 
+endpoints.enabled: false
+endpoints.health.enabled: true
