@@ -17,14 +17,18 @@ package org.trustedanalytics.serviceexposer.nats.registrator;
 
 import nats.client.Nats;
 import nats.client.spring.NatsBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.ExternalTool;
+import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.ExternalTools;
 
 import java.util.List;
+import java.util.Vector;
 
 @Configuration
 public class RegistratorConfig {
@@ -38,15 +42,8 @@ public class RegistratorConfig {
     @Value("#{'${serviceTypes}'.split(',')}")
     private List<String> serviceTypes;
 
-    @Value("${hue.available}")
-    private String hueAvailable;
-
-    @Value("${hue.url}")
-    private String hueUrl;
-
-    @Value("${hue.host}")
-    private String hueCredentials;
-
+    @Autowired
+    private ExternalTools externalTools;
 
     @Bean
     public Nats nats(ApplicationEventPublisher applicationEventPublisher) {
@@ -61,19 +58,22 @@ public class RegistratorConfig {
     }
 
     @Bean
-    protected CredentialProperties hueCredentials() {
-        if (hueAvailable.equals("true") && !hueCredentials.contains("None")) {
-            String[] ipAndPort = hueCredentials.split(":");
-            String url = hueUrl.split("/")[2];
-            return new CredentialProperties("", "", "", "", ipAndPort[0], ipAndPort[1], url, "", "");
-        } else {
-            return new CredentialProperties("", "", "", "", "", "", "", "", "");
+    protected List<CredentialProperties> visualisationToolsCredentials() {
+        List<CredentialProperties> visualisationTools = new Vector<>();
+        for (ExternalTool entry : externalTools.getVisualizations()) {
+            if (entry.isAvailable() && !entry.getHost().contains("None")) {
+                String[] ipAndPort = entry.getHost().split(":");
+                String url = entry.getUrl().split("/")[2];
+                visualisationTools.add(new CredentialProperties("", "", "", "", ipAndPort[0], ipAndPort[1], url, "", ""));
+            }
         }
+        return visualisationTools;
     }
+
 
     @Bean
     public RegistratorJob registratorJob(NatsMessagingQueue nats, CredentialsStore store) {
-        return new RegistratorJob(nats, store, serviceTypes, hueCredentials());
+        return new RegistratorJob(nats, store, serviceTypes, visualisationToolsCredentials());
     }
 
     @Bean(initMethod = "start")

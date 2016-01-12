@@ -44,10 +44,16 @@ serviceTypes: "rstudio,ipython,h2o"
 
 restrictedServicesNames: "uaa,api,login"
 
-hue:
-  available: ${vcap.services.external-tools.credentials.hue.available}
-  url: ${vcap.services.external-tools.credentials.hue.url}
-  host: ${vcap.services.external-tools.credentials.hue.internal_host}
+external-tools:
+  visualizations:
+    - name: hue
+      available: ${vcap.services.external-tools.credentials.hue.available}
+      url: ${vcap.services.external-tools.credentials.hue.url}
+      host: ${vcap.services.external-tools.credentials.hue.internal_host}
+    - name: arcadia
+      available: ${vcap.services.external-tools.credentials.arcadia.available}
+      url: ${vcap.services.external-tools.credentials.arcadia.url}
+      host: ${vcap.services.external-tools.credentials.arcadia.internal_host}
 
 endpoints.enabled: false
 endpoints.health.enabled: true

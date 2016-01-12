@@ -27,12 +27,13 @@ import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
 import org.trustedanalytics.serviceexposer.nats.registrator.RegistratorJob;
 
 import java.util.List;
+import java.util.Vector;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RegistratorJobTests {
+public class ServicesRegistratorJobTests {
 
 
     private RegistratorJob sut;
@@ -55,8 +56,10 @@ public class RegistratorJobTests {
     @Before
     public void setup() {
         serviceTypes = ImmutableList.of(SERVICE_TYPE_RSTUDIO, SERVICE_TYPE_IPYTHON);
-        hueCredentials = new CredentialProperties("","","","","","","","","");
-        sut = new RegistratorJob(natsOps, store,serviceTypes,hueCredentials);
+        CredentialProperties hueCredentials = new CredentialProperties("","","","","","","","","");
+        List<CredentialProperties> credentialsList = new Vector<>();
+        credentialsList.add(hueCredentials);
+        sut = new RegistratorJob(natsOps, store,serviceTypes,credentialsList);
     }
 
     @Test
