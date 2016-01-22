@@ -44,31 +44,31 @@ public class RedisCredentialsStore implements CredentialsStore {
 
     @Override
     public void put(String serviceType, CredentialProperties code) {
-        hashOps.put(serviceType, code.getServiceInstaceGUID(), code);
+        hashOps.put(serviceType, code.getServiceInstaceGuid(), code);
         LOG.info("redis entry saved: " + code.getName());
     }
 
     @Override
-    public void delete(String serviceType, UUID serviceInstanceGUID) {
-        hashOps.delete(serviceType, serviceInstanceGUID.toString());
-        LOG.info("redis entry deleted: " + serviceInstanceGUID.toString());
+    public void delete(String serviceType, UUID serviceInstanceGuid) {
+        hashOps.delete(serviceType, serviceInstanceGuid.toString());
+        LOG.info("redis entry deleted: " + serviceInstanceGuid.toString());
     }
 
     @Override
-    public CredentialProperties get(String serviceType, UUID serviceInstanceGUID) {
-        return hashOps.get(serviceType, serviceInstanceGUID.toString());
+    public CredentialProperties get(String serviceType, UUID serviceInstanceGuid) {
+        return hashOps.get(serviceType, serviceInstanceGuid.toString());
     }
 
     @Override
-    public Boolean exists(String serviceType, UUID serviceInstanceGUID) {
-        CredentialProperties hashEntry = hashOps.get(serviceType, serviceInstanceGUID.toString());
+    public Boolean exists(String serviceType, UUID serviceInstanceGuid) {
+        CredentialProperties hashEntry = hashOps.get(serviceType, serviceInstanceGuid.toString());
         return (hashEntry != null) ? true : false;
     }
 
     @Override
-    public Set<String> getSurplusServicesGUIDs(String serviceType, Set<String> servicesGUIDs) {
+    public Set<String> getSurplusServicesGuids(String serviceType, Set<String> servicesGuids) {
         Set<String> serviceInstancesToDeleted = this.hashOps.keys(serviceType);
-        serviceInstancesToDeleted.removeAll(servicesGUIDs);
+        serviceInstancesToDeleted.removeAll(servicesGuids);
         return serviceInstancesToDeleted;
     }
 
@@ -78,11 +78,11 @@ public class RedisCredentialsStore implements CredentialsStore {
     }
 
     @Override
-    public Map<String, Map<String, String>> getCredentialsInJSON(String serviceType, UUID spaceGUID) {
+    public Map<String, Map<String, String>> getCredentialsInJson(String serviceType, UUID spaceGuid) {
         try {
 
             return hashOps.values(serviceType).stream().
-                    filter(s -> s.getSpaceGuid().equals(spaceGUID.toString())).
+                    filter(s -> s.getSpaceGuid().equals(spaceGuid.toString())).
                     collect(toMap(CredentialProperties::getName, CredentialProperties::retriveMapForm));
 
         } catch (Exception e) {
@@ -94,9 +94,9 @@ public class RedisCredentialsStore implements CredentialsStore {
     @Override
     public void cleanStore(String serviceType) {
         try {
-            for (String serviceGUID : hashOps.keys(serviceType)) {
-                LOG.info("deleted " + serviceType + "\t" + serviceGUID, "");
-                hashOps.delete(serviceType, serviceGUID);
+            for (String serviceGuid : hashOps.keys(serviceType)) {
+                LOG.info("deleted " + serviceType + "\t" + serviceGuid, "");
+                hashOps.delete(serviceType, serviceGuid);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

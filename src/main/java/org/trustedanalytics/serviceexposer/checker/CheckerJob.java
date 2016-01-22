@@ -18,6 +18,7 @@ package org.trustedanalytics.serviceexposer.checker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 import org.trustedanalytics.serviceexposer.retriver.CredentialsRetriver;
 import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
@@ -25,6 +26,7 @@ import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CheckerJob {
 
@@ -49,22 +51,26 @@ public class CheckerJob {
 
     public void run() {
         for (String serviceType : serviceTypes) {
-            Set<String> servicesGUIDS = servicesRetriver.getServiceInstances(serviceType);
-            updateCreatedServiceInstances(serviceType, servicesGUIDS);
-            updateDeletedServiceInstances(serviceType, servicesGUIDS);
+            Set<CcExtendedServiceInstance> serviceInstances = servicesRetriver.getServiceInstances(serviceType);
+            updateCreatedServiceInstances(serviceType, serviceInstances);
+            updateDeletedServiceInstances(serviceType, serviceInstances);
         }
         LOG.info("Checking services finished");
     }
 
-    public void updateCreatedServiceInstances(String serviceType, Set<String> servicesGUIDS) {
-        for (String serviceGUID : servicesGUIDS) {
-            credentialsRetriver.saveCredentialsUsingEnvs(serviceType, UUID.fromString(serviceGUID));
+    public void updateCreatedServiceInstances(String serviceType, Set<CcExtendedServiceInstance> serviceInstances) {
+        for (CcExtendedServiceInstance serviceInstance : serviceInstances) {
+            credentialsRetriver.saveCredentialsUsingEnvs(serviceType, serviceInstance);
         }
     }
 
-    public void updateDeletedServiceInstances(String serviceType, Set<String> servicesGUIDS) {
-        for (String serviceGUID : credentialsStore.getSurplusServicesGUIDs(serviceType, servicesGUIDS)) {
-            credentialsRetriver.deleteServiceInstance(serviceType, UUID.fromString(serviceGUID));
+    public void updateDeletedServiceInstances(String serviceType, Set<CcExtendedServiceInstance> serviceInstances) {
+        Set<String> servicesGuids = serviceInstances.stream()
+                .map(instance -> instance.getMetadata().getGuid().toString())
+                .collect(Collectors.toSet());
+
+        for (String serviceInstanceGuid : credentialsStore.getSurplusServicesGuids(serviceType, servicesGuids)) {
+            credentialsRetriver.deleteServiceInstance(serviceType, UUID.fromString(serviceInstanceGuid));
         }
     }
 }

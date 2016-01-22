@@ -72,13 +72,8 @@ public class RetriverConfig {
     }
 
     @Bean
-    protected CustomCFOperations customCFOperations() {
-        return new CustomCFOperations(clientRestTemplate(), apiBaseUrl);
-    }
-
-    @Bean
     protected CredentialsRetriver credentialsRetriver(NatsMessagingQueue natsOps, CredentialsStore redisCredentialsStore) {
-        return new CredentialsRetriver(ccPrivilegedClient(), customCFOperations(), redisCredentialsStore, natsOps, apiBaseUrl);
+        return new CredentialsRetriver(ccPrivilegedClient(), redisCredentialsStore, natsOps, apiBaseUrl);
     }
 
     @Bean

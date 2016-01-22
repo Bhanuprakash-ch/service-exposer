@@ -28,13 +28,13 @@ public interface CredentialsStore {
 
     Boolean exists(String serviceType, UUID serviceInstanceGuid);
 
-    CredentialProperties get(String serviceType, UUID serviceInstanceGUID);
+    CredentialProperties get(String serviceType, UUID serviceInstanceGuid);
 
-    Set<String> getSurplusServicesGUIDs(String serviceType, Set<String> retrievedServiceGUIDs);
+    Set<String> getSurplusServicesGuids(String serviceType, Set<String> retrievedServiceGuids);
 
     List<CredentialProperties> getAllCredentialsEntries(String serviceType);
 
-    Map<String, Map<String, String>> getCredentialsInJSON(String serviceType, UUID spaceGUID);
+    Map<String, Map<String, String>> getCredentialsInJson(String serviceType, UUID spaceGuid);
 
     void cleanStore(String serviceType);
 }

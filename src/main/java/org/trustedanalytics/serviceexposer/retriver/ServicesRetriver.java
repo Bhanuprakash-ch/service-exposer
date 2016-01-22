@@ -17,6 +17,7 @@ package org.trustedanalytics.serviceexposer.retriver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServicePlan;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.queries.Filter;
@@ -44,25 +45,22 @@ public class ServicesRetriver {
         this.restrictedNames = restirctedNames;
     }
 
-    public Set<String> getServiceInstances(String serviceType) {
+    public Set<CcExtendedServiceInstance> getServiceInstances(String serviceType) {
         try {
 
-            Set<String> allServiceGUIDsForGivenType = new HashSet<>();
+            Set<CcExtendedServiceInstance> allServiceGuidsForGivenType = new HashSet<>();
             for (CcExtendedServicePlan servicePlan : getServicePlans(serviceType)) {
-                String planGUID = servicePlan.getMetadata().getGuid().toString();
+                String planGuid = servicePlan.getMetadata().getGuid().toString();
                 ccClient.getExtendedServiceInstances(
-                        FilterQuery.from(Filter.SERVICE_PLAN_GUID, FilterOperator.EQ, planGUID)
+                        FilterQuery.from(Filter.SERVICE_PLAN_GUID, FilterOperator.EQ, planGuid)
                 ).filter(service -> !restrictedNames.contains(service.getEntity().getName()))
                         .forEach(serviceInstance ->
-                                        allServiceGUIDsForGivenType.add(
-                                                serviceInstance.
-                                                        getMetadata().
-                                                        getGuid().
-                                                        toString()
+                                        allServiceGuidsForGivenType.add(
+                                                serviceInstance
                                         )
                         );
             }
-            return allServiceGUIDsForGivenType;
+            return allServiceGuidsForGivenType;
 
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

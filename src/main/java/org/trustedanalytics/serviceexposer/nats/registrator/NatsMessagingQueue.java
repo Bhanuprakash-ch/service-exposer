@@ -38,9 +38,9 @@ public class NatsMessagingQueue implements MessagingQueue {
     public void registerPathInGoRouter(CredentialProperties serviceInfo) {
         nats.publish(NATS_ROUTE_REGISTER, serviceInfo.toString());
         LOG.info("route registered: {}:{} -> {}",
-                serviceInfo.getIpaddress(),
+                serviceInfo.getIpAddress(),
                 serviceInfo.getPort(),
-                serviceInfo.getHostname()
+                serviceInfo.getHostName()
         );
     }
 
@@ -48,8 +48,8 @@ public class NatsMessagingQueue implements MessagingQueue {
     public void unregisterPathInGoRouter(CredentialProperties serviceInfo) {
         nats.publish(NATS_ROUTE_UNREGISTER, serviceInfo.toString());
         LOG.info("route unregistered: {} -> {}:{}",
-                serviceInfo.getHostname(),
-                serviceInfo.getIpaddress(),
+                serviceInfo.getHostName(),
+                serviceInfo.getIpAddress(),
                 serviceInfo.getPort()
         );
     }

@@ -17,14 +17,16 @@ package org.trustedanalytics.serviceexposer.retriver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trustedanalytics.cloud.cc.api.CcAppEnv;
-import org.trustedanalytics.cloud.cc.api.CcNewServiceBinding;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcNewServiceKey;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.CcServiceBinding;
+import org.trustedanalytics.cloud.cc.api.CcServiceKey;
 import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
 import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CredentialsRetriver {
@@ -34,73 +36,72 @@ public class CredentialsRetriver {
     private CcOperations ccClient;
     private CredentialsStore store;
     private NatsMessagingQueue natsOps;
-    private CustomCFOperations customCFOps;
     private String apiBaseUrl;
 
-    public CredentialsRetriver(CcOperations ccClient, CustomCFOperations cfOps, CredentialsStore store, NatsMessagingQueue natsOps, String apiBaseUrl) {
+    public CredentialsRetriver(CcOperations ccClient, CredentialsStore store, NatsMessagingQueue natsOps, String apiBaseUrl) {
         this.ccClient = ccClient;
-        this.customCFOps = cfOps;
         this.store = store;
         this.natsOps = natsOps;
         this.apiBaseUrl = apiBaseUrl;
     }
 
-    public void saveCredentialsUsingEnvs(String serviceType, UUID serviceInstanceGUID) {
+    public void saveCredentialsUsingEnvs(String serviceType, CcExtendedServiceInstance serviceInstance) {
+        UUID serviceInstanceGuid = serviceInstance.getMetadata().getGuid();
         try {
-            if (!store.exists(serviceType, serviceInstanceGUID)) {
-                LOG.info("service instance created: " + serviceInstanceGUID);
-                UUID spaceGUID = customCFOps.getSpaceGUID(serviceInstanceGUID);
-                LOG.info("instance created in space: " + spaceGUID);
-                String appName = serviceType + "-credentials-generator";
+            if (!store.exists(serviceType, serviceInstanceGuid)) {
+                LOG.info("detected creation of service instance : " + serviceInstanceGuid);
 
-                UUID tempAppGUID = customCFOps.getAppGUIDFromGivenSpace(appName, spaceGUID);
+                CcServiceKey serviceInstanceKey = prepareServiceKey(serviceInstance);
+                UUID serviceInstanceKeyGuid = serviceInstanceKey.getMetadata().getGuid();
+                LOG.info("service key prepared: " + serviceInstanceKeyGuid);
 
-                if (tempAppGUID == null) {
-                    UUID appGUID = customCFOps.createAppInGivenSpace(appName, spaceGUID);
-                    LOG.info("temporary app created: " + appGUID);
-                    CcNewServiceBinding binding = new CcNewServiceBinding(appGUID, serviceInstanceGUID);
-                    CcServiceBinding bindingGuid = ccClient.createServiceBinding(binding);
-                    CredentialProperties serviceCredentials = getCredentialsFromApp(serviceType, appGUID, serviceInstanceGUID, spaceGUID);
-                    ccClient.deleteServiceBinding(bindingGuid.getMetadata().getGuid());
-                    ccClient.deleteApp(appGUID);
-                    LOG.info("temporary app deleted: " + appGUID);
-                    store.put(serviceType, serviceCredentials);
-                    natsOps.registerPathInGoRouter(serviceCredentials);
-                } else {
-                    LOG.info("deleting temporary app: " + tempAppGUID);
-                    ccClient.deleteApp(tempAppGUID);
-                }
+                CredentialProperties credentials = parseCredentials(serviceInstance, serviceInstanceKey);
+                LOG.info("service credentials retrieved from key: " + serviceInstanceKeyGuid);
+
+                store.put(serviceType, credentials);
+                natsOps.registerPathInGoRouter(credentials);
             }
         } catch (Exception e) {
-            LOG.error("failed to get credentials from service instance: " + serviceInstanceGUID);
-            e.printStackTrace();
-        }
-    }
-
-    private CredentialProperties getCredentialsFromApp(String serviceType, UUID appGUID, UUID serviceGUID, UUID spaceGuid) {
-        try {
-            CcAppEnv env = ccClient.getAppEnv(appGUID).toBlocking().single();
-            String filter = "$..[?(@.label==\'" + serviceType + "\')]";
-            String serviceName = env.getValueByFilter(filter).findValue("name").asText();
-            String ipAddress = env.findCredentialsPropertyByServiceLabel(serviceType, "hostname");
-            String portNumber = env.findCredentialsPropertyByServiceLabel(serviceType, "port");
-            String password = env.findCredentialsPropertyByServiceLabel(serviceType, "password");
-            String username = serviceType.equals("ipython") ? "" : env.findCredentialsPropertyByServiceLabel(serviceType, "username");
-            String domainName = apiBaseUrl.split("api")[1];
-            CredentialProperties serviceInfo = new CredentialProperties(domainName, serviceGUID.toString(), spaceGuid.toString(), serviceName, ipAddress, portNumber, "", username, password);
-            return serviceInfo;
-        } catch (Exception e) {
+            LOG.error("failed to get credentials from service instance: " + serviceInstanceGuid);
             LOG.error(e.getMessage(), e);
         }
-        return null;
     }
 
-    public void deleteServiceInstance(String serviceType, UUID serviceInstanceGUID) {
+    private CcServiceKey prepareServiceKey(CcExtendedServiceInstance serviceInstance) {
+        UUID instanceGuid = serviceInstance.getMetadata().getGuid();
+        CcServiceKey existingKey = ccClient.getServiceKeys()
+                .filter(k -> k.getEntity().getName().contains(instanceGuid.toString()))
+                .firstOrDefault(null)
+                .toBlocking()
+                .first();
+
+        return Optional
+                .ofNullable(existingKey)
+                .orElseGet(() -> ccClient.createServiceKey(new CcNewServiceKey(instanceGuid, instanceGuid + "-key"))
+                        .toBlocking()
+                        .first());
+    }
+
+    private CredentialProperties parseCredentials(CcExtendedServiceInstance serviceInstance, CcServiceKey serviceInstanceKey) {
+        Map<String, String> credentials = (Map<String, String>) serviceInstanceKey.getEntity().getCredentials();
+        String domainName = apiBaseUrl.split("api")[1];
+        String instanceGuid = serviceInstance.getMetadata().getGuid().toString();
+        String spaceGuid = serviceInstance.getEntity().getSpaceGuid().toString();
+        String serviceName = serviceInstance.getEntity().getName();
+        String ipAddress = Optional.ofNullable(credentials.get("hostname")).orElse("");
+        String port = Optional.ofNullable(credentials.get("port")).orElse("");
+        String externalUrl = Optional.ofNullable(credentials.get("dashboardUrl")).orElse("");
+        String username = Optional.ofNullable(credentials.get("username")).orElse("");
+        String password = Optional.ofNullable(credentials.get("password")).orElse("");
+        return new CredentialProperties(domainName, instanceGuid, spaceGuid, serviceName, ipAddress, port, externalUrl, username, password);
+    }
+
+    public void deleteServiceInstance(String serviceType, UUID serviceInstanceGuid) {
         try {
-            if (store.exists(serviceType, serviceInstanceGUID)) {
-                LOG.info("service instance deleted: " + serviceInstanceGUID);
-                CredentialProperties serviceInfo = store.get(serviceType, serviceInstanceGUID);
-                store.delete(serviceType, serviceInstanceGUID);
+            if (store.exists(serviceType, serviceInstanceGuid)) {
+                LOG.info("detected deletion of service instance: " + serviceInstanceGuid);
+                CredentialProperties serviceInfo = store.get(serviceType, serviceInstanceGuid);
+                store.delete(serviceType, serviceInstanceGuid);
                 natsOps.unregisterPathInGoRouter(serviceInfo);
             }
         } catch (Exception e) {

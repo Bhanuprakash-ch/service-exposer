@@ -20,7 +20,6 @@ import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,26 +27,26 @@ import java.util.Objects;
 public class CredentialProperties {
     private static final Logger LOG = LoggerFactory.getLogger(CredentialProperties.class);
 
-    private String serviceInstaceGUID;
+    private String serviceInstaceGuid;
     private String spaceGuid;
     private String name;
-    private String hostname;
-    private String ipaddress;
+    private String hostName;
+    private String ipAddress;
     private String port;
     private String login;
     private String password;
 
-    public CredentialProperties(String domainName, String serviceInstaceGUID, String spaceGuid, String name, String IPAdress, String PortNumber, String hostname, String login, String password) {
-        this.serviceInstaceGUID = serviceInstaceGUID;
+    public CredentialProperties(String domainName, String instaceGuid, String spaceGuid, String name, String ipAdress, String portNumber, String hostName, String login, String password) {
+        this.serviceInstaceGuid = instaceGuid;
         this.spaceGuid = spaceGuid;
         this.name = name;
-        if (hostname.equals("")) {
-            this.hostname = name.replaceAll("[^A-Za-z0-9]", "_") + "-" + serviceInstaceGUID + domainName;
+        if (hostName.equals("")) {
+            this.hostName = name.replaceAll("[^A-Za-z0-9]", "_") + "-" + serviceInstaceGuid + domainName;
         } else {
-            this.hostname = hostname;
+            this.hostName = hostName;
         }
-        this.ipaddress = IPAdress;
-        this.port = PortNumber;
+        this.ipAddress = ipAdress;
+        this.port = portNumber;
         this.login = login;
         this.password = password;
     }
@@ -57,7 +56,7 @@ public class CredentialProperties {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hostname, serviceInstaceGUID);
+        return Objects.hash(hostName, serviceInstaceGuid);
     }
 
     @Override
@@ -67,20 +66,20 @@ public class CredentialProperties {
         if (getClass() != obj.getClass())
             return false;
         CredentialProperties other = (CredentialProperties) obj;
-        return Objects.equals(hostname, other.hostname) && Objects.equals(serviceInstaceGUID, other.serviceInstaceGUID);
+        return Objects.equals(hostName, other.hostName) && Objects.equals(serviceInstaceGuid, other.serviceInstaceGuid);
     }
 
     @Override
     public String toString() {
-        return "{\"host\":\"" + ipaddress +
+        return "{\"host\":\"" + ipAddress +
                 "\",\"port\":" + port +
-                ",\"uris\":[\"" + hostname + "\"]}";
+                ",\"uris\":[\"" + hostName + "\"]}";
     }
 
     public Map<String, String> retriveMapForm() {
         return ImmutableMap.
-                of("guid", serviceInstaceGUID,
-                        "hostname", hostname,
+                of("guid", serviceInstaceGuid,
+                        "hostname", hostName,
                         "login", login,
                         "password", password);
 

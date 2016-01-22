@@ -22,17 +22,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
+import org.trustedanalytics.cloud.cc.api.CcMetadata;
 import org.trustedanalytics.serviceexposer.checker.CheckerJob;
+import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
 import org.trustedanalytics.serviceexposer.retriver.CredentialsRetriver;
 import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.UUID;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,19 +63,37 @@ public class CheckerJobTests {
     @Test
     public void testCheckerJobRunMethodForIPythonServices() {
 
-        String[] guids = {UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                UUID.randomUUID().toString()};
+        UUID[] guids = {UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()};
 
-        Set<String> rstudioGUIDS = Sets.newHashSet(guids);
 
-        when(servicesRetriver.getServiceInstances("ipython")).thenReturn(rstudioGUIDS);
+        Set<CcExtendedServiceInstance> rstudioGuids = new HashSet<>();
+
+        CcExtendedServiceInstance s1 = new CcExtendedServiceInstance();
+        CcExtendedServiceInstance s2 = new CcExtendedServiceInstance();
+        CcExtendedServiceInstance s3 = new CcExtendedServiceInstance();
+
+        s1.setMetadata(new CcMetadata());
+        s2.setMetadata(new CcMetadata());
+        s3.setMetadata(new CcMetadata());
+
+        s1.getMetadata().setGuid(guids[0]);
+        s2.getMetadata().setGuid(guids[1]);
+        s3.getMetadata().setGuid(guids[2]);
+
+        rstudioGuids.add(s1);
+        rstudioGuids.add(s2);
+        rstudioGuids.add(s3);
+
+        when(servicesRetriver.getServiceInstances("ipython")).thenReturn(rstudioGuids);
 
         sut.run();
 
-        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", UUID.fromString(guids[0]));
-        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", UUID.fromString(guids[1]));
-        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", UUID.fromString(guids[2]));
+        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", s1);
+        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", s2);
+        verify(credentialsRetriver).saveCredentialsUsingEnvs("ipython", s3);
+
     }
 
     @Test
@@ -84,11 +103,14 @@ public class CheckerJobTests {
                 UUID.randomUUID().toString(),
                 UUID.randomUUID().toString()};
 
-        Set<String> surplusGUIDS = Sets.newHashSet(guids);
-        Set<String> retrievedGUIDS = new HashSet<>();
-        when(credentialsStore.getSurplusServicesGUIDs(SERVICE_TYPE_RSTUDIO, retrievedGUIDS)).thenReturn(surplusGUIDS);
+        Set<String> surplusGuids = Sets.newHashSet(guids);
+        Set<String> serviceInstancessGuids = Sets.newHashSet();
 
-        sut.updateDeletedServiceInstances(SERVICE_TYPE_RSTUDIO, retrievedGUIDS);
+        Set<CcExtendedServiceInstance> retrievedGuids = new HashSet<>();
+
+        when(credentialsStore.getSurplusServicesGuids(SERVICE_TYPE_RSTUDIO, serviceInstancessGuids)).thenReturn(surplusGuids);
+
+        sut.updateDeletedServiceInstances(SERVICE_TYPE_RSTUDIO, retrievedGuids);
 
         verify(credentialsRetriver).deleteServiceInstance(SERVICE_TYPE_RSTUDIO, UUID.fromString(guids[0]));
         verify(credentialsRetriver).deleteServiceInstance(SERVICE_TYPE_RSTUDIO, UUID.fromString(guids[1]));
@@ -98,16 +120,32 @@ public class CheckerJobTests {
     @Test
     public void testCheckerJobUdpateCreatedRStudioInstances() {
 
-        String[] guids = {UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                UUID.randomUUID().toString()};
+        UUID[] guids = {UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()};
 
-        Set<String> retrievedGUIDS = Sets.newHashSet(guids);
+        Set<CcExtendedServiceInstance> rstudioGuids = new HashSet<>();
 
-        sut.updateCreatedServiceInstances(SERVICE_TYPE_RSTUDIO, retrievedGUIDS);
+        CcExtendedServiceInstance s1 = new CcExtendedServiceInstance();
+        CcExtendedServiceInstance s2 = new CcExtendedServiceInstance();
+        CcExtendedServiceInstance s3 = new CcExtendedServiceInstance();
 
-        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, UUID.fromString(guids[0]));
-        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, UUID.fromString(guids[1]));
-        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, UUID.fromString(guids[2]));
+        s1.setMetadata(new CcMetadata());
+        s2.setMetadata(new CcMetadata());
+        s3.setMetadata(new CcMetadata());
+
+        s1.getMetadata().setGuid(guids[0]);
+        s2.getMetadata().setGuid(guids[1]);
+        s3.getMetadata().setGuid(guids[2]);
+
+        rstudioGuids.add(s1);
+        rstudioGuids.add(s2);
+        rstudioGuids.add(s3);
+
+        sut.updateCreatedServiceInstances(SERVICE_TYPE_RSTUDIO, rstudioGuids);
+
+        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, s1);
+        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, s2);
+        verify(credentialsRetriver).saveCredentialsUsingEnvs(SERVICE_TYPE_RSTUDIO, s3);
     }
 }

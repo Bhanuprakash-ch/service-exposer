@@ -60,7 +60,7 @@ public class CredentialsController {
     public ResponseEntity<?> getAllCredentials(@RequestParam(required = true) UUID space, @RequestParam(required = true) String service) {
 
         return ccOperations.getSpace(space)
-                .map(s -> new ResponseEntity<>(store.getCredentialsInJSON(service, s.getGuid()), HttpStatus.OK))
+                .map(s -> new ResponseEntity<>(store.getCredentialsInJson(service, s.getGuid()), HttpStatus.OK))
                 .onErrorReturn(er -> {
                     LOGGER.error("Exception occurred:", er);
                     return new ResponseEntity<>(Collections.emptyMap(), HttpStatus.UNAUTHORIZED);
@@ -73,7 +73,7 @@ public class CredentialsController {
     public ResponseEntity<?> getAllCredentialsInOrg(@PathVariable UUID org, @RequestParam(required = true) String service) {
 
         return ccOperations.getSpaces(org)
-                .map(s -> store.getCredentialsInJSON(service, s.getGuid()))
+                .map(s -> store.getCredentialsInJson(service, s.getGuid()))
                 .flatMap(json -> Observable.from(getFlattenedCredentials(json)))
                 .toList()
                 .map(instances -> new ResponseEntity<>(instances, HttpStatus.OK))
