@@ -40,7 +40,7 @@ redis:
 
 checker.triggerExpression: 0/5 * * * * ?
 
-serviceTypes: "rstudio,ipython,h2o,gearpump"
+serviceTypes: "rstudio,ipython,gearpump"
 
 restrictedServicesNames: "uaa,api,login"
 
