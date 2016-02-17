@@ -37,6 +37,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -56,9 +60,17 @@ public class CredentialsController {
         this.store = store;
     }
 
+    @ApiOperation(value = "Returns list of all service instance credentials of given type for given space.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "OK", response = ResponseEntity.class),
+        @ApiResponse(code = 401, message = "User is Unauthorized"),
+        @ApiResponse(code = 500, message = "Internal server error, see logs for details")
+    })
     @RequestMapping(value = GET_SERVICES_LIST_URL, method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllCredentials(@RequestParam(required = true) UUID space, @RequestParam(required = true) String service) {
-
+    public ResponseEntity<?> getAllCredentials(
+            @RequestParam(required = true) UUID space,
+            @RequestParam(required = true) String service)
+    {
         return ccOperations.getSpace(space)
                 .map(s -> new ResponseEntity<>(store.getCredentialsInJson(service, s.getGuid()), HttpStatus.OK))
                 .onErrorReturn(er -> {
@@ -69,9 +81,17 @@ public class CredentialsController {
                 .single();
     }
 
+    @ApiOperation(value = "Returns list of all service instance credentials of given type for given organization.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = ResponseEntity.class),
+            @ApiResponse(code = 401, message = "User is Unauthorized"),
+            @ApiResponse(code = 500, message = "Internal server error, see logs for details")
+    })
     @RequestMapping(value = GET_CREDENTIALS_LIST_FOR_ORG_URL, method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllCredentialsInOrg(@PathVariable UUID org, @RequestParam(required = true) String service) {
-
+    public ResponseEntity<?> getAllCredentialsInOrg(
+            @PathVariable UUID org,
+            @RequestParam(required = true) String service)
+    {
         return ccOperations.getSpaces(org)
                 .map(s -> store.getCredentialsInJson(service, s.getGuid()))
                 .flatMap(json -> Observable.from(getFlattenedCredentials(json)))

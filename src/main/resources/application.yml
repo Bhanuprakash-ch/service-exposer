@@ -32,7 +32,7 @@ logging:
     nats.client: DEBUG
 
 security:
-  ignored: /open,/*.js,/sdoc.jsp,/api-docs,/api-docs/default/*,/images/*,/lib/*,/css/*
+  ignored: /open,/*.js,/sdoc.jsp,/api-docs,/api-docs/default/*,/images/*,/lib/*,/css/*,/v2/api-docs,/api-docs/default/*
 
 redis:
   hostname: ${vcap.services.redis28-for-service-exposer.credentials.hostname}

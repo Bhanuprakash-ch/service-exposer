@@ -18,6 +18,7 @@ package org.trustedanalytics.serviceexposer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.security.oauth2.resource.EnableOAuth2Resource;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @EnableOAuth2Resource
 @SpringBootApplication
