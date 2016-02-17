@@ -58,6 +58,9 @@ public class CredentialsRetriver {
                 CredentialProperties credentials = parseCredentials(serviceInstance, serviceInstanceKey);
                 LOG.info("service credentials retrieved from key: " + serviceInstanceKeyGuid);
 
+                ccClient.deleteServiceKey(serviceInstanceKeyGuid);
+                LOG.info("service key deleted: " + serviceInstanceKeyGuid);
+
                 store.put(serviceType, credentials);
                 natsOps.registerPathInGoRouter(credentials);
             }
