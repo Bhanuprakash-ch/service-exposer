@@ -54,6 +54,10 @@ external-tools:
       available: ${vcap.services.external-tools.credentials.arcadia.available}
       url: ${vcap.services.external-tools.credentials.arcadia.url}
       host: ${vcap.services.external-tools.credentials.arcadia.internal_host}
+    - name: h2o
+      available: ${vcap.services.external-tools.credentials.h2o.available}
+      url: ${vcap.services.external-tools.credentials.h2o.url}
+      host: ${vcap.services.external-tools.credentials.h2o.internal_host}
 
 endpoints.enabled: false
 endpoints.health.enabled: true
