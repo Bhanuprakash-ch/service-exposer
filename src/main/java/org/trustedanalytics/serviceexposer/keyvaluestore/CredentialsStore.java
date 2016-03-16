@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.serviceexposer.cloud;
+package org.trustedanalytics.serviceexposer.keyvaluestore;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public interface CredentialsStore {
+public interface CredentialsStore<T> {
 
-    void put(String serviceType, CredentialProperties code);
+    void put(String serviceType, UUID serviceInstanceGuid, T code);
 
     void delete(String serviceType, UUID serviceInstanceGuid);
 
     Boolean exists(String serviceType, UUID serviceInstanceGuid);
 
-    CredentialProperties get(String serviceType, UUID serviceInstanceGuid);
+    T get(String serviceType, UUID serviceInstanceGuid);
 
     Set<String> getSurplusServicesGuids(String serviceType, Set<String> retrievedServiceGuids);
 
-    List<CredentialProperties> getAllCredentialsEntries(String serviceType);
-
-    Map<String, Map<String, String>> getCredentialsInJson(String serviceType, UUID spaceGuid);
+    List<T> values(String serviceType);
 
     void cleanStore(String serviceType);
 }

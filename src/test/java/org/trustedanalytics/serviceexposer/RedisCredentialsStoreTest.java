@@ -26,9 +26,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisOperations;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
-import org.trustedanalytics.serviceexposer.cloud.RedisCredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.RedisCredentialsStore;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +44,7 @@ public class RedisCredentialsStoreTest {
 
     private static final String SERVICE_TYPE = "rstudio";
 
-    private CredentialsStore sut;
+    private CredentialsStore<CredentialProperties> sut;
 
     @Mock
     private RedisOperations<String, CredentialProperties> template;
@@ -58,7 +58,7 @@ public class RedisCredentialsStoreTest {
     @Before
     public void setUp() {
         when(template.opsForHash()).thenReturn(mockHashOps);
-        sut = new RedisCredentialsStore(template);
+        sut = new RedisCredentialsStore<>(template);
     }
 
     @Test
@@ -84,21 +84,24 @@ public class RedisCredentialsStoreTest {
     @Test
     public void testGetCredentialsInJSON() {
         String serviceName = "tested";
-        String randomServiceGuid = UUID.randomUUID().toString();
+        UUID guid = UUID.randomUUID();
+        String randomServiceGuid = guid.toString();
         UUID randomSpaceGuid = UUID.randomUUID();
         UUID randomSpaceGuid2 = UUID.randomUUID();
 
-        Map<String, String> entry = ImmutableMap.of("guid", randomServiceGuid, "hostname", serviceName+"-"+randomServiceGuid, "login", "","password","");
+        Map<String, String> testEntry = ImmutableMap.of("guid", randomServiceGuid, "hostname", serviceName + "-" + randomServiceGuid, "login", "", "password", "");
 
-        when(mockCredentialsProperties.retriveMapForm()).thenReturn(entry);
+        when(mockCredentialsProperties.retriveMapForm()).thenReturn(testEntry);
         when(mockCredentialsProperties.getSpaceGuid()).thenReturn(randomSpaceGuid.toString());
 
         CredentialProperties existingEntry = new CredentialProperties("",randomServiceGuid,randomSpaceGuid.toString(),serviceName,"","","","","");
 
         List<Object> serviceEntries = ImmutableList.of(existingEntry);
-        when(mockHashOps.values(SERVICE_TYPE)).thenReturn(serviceEntries);
-        Map<String, Map<String, String>> jsonMap = sut.getCredentialsInJson(SERVICE_TYPE, randomSpaceGuid);
+        when(mockHashOps.get(SERVICE_TYPE, guid.toString())).thenReturn(existingEntry);
+        CredentialProperties entry = sut.get(SERVICE_TYPE, guid);
 
-        assertEquals(ImmutableMap.of(serviceName, entry), jsonMap);
+        Map ref = ImmutableMap.of(serviceName, testEntry);
+        Map actual = ImmutableMap.of(entry.getName(), entry.retriveMapForm());
+        assertEquals(ref, actual);
     }
 }

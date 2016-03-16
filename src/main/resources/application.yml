@@ -61,3 +61,5 @@ external-tools:
 
 endpoints.enabled: false
 endpoints.health.enabled: true
+
+spring.profiles.active: in-memory

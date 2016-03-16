@@ -30,7 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import rx.Observable;
 
 import java.util.Collection;
@@ -39,21 +40,22 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 public class CredentialsController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CredentialsController.class);
     public static final String GET_SERVICES_LIST_URL = "/rest/tools/service_instances";
     public static final String GET_CREDENTIALS_LIST_FOR_ORG_URL = "/rest/credentials/organizations/{org}";
 
     private final CcOperations ccOperations;
-    private final CredentialsStore store;
+    private final CredentialsStore<CredentialProperties> store;
 
     @Autowired
-    public CredentialsController(@Qualifier("ControllerClient") CcOperations ccOperations, CredentialsStore store) {
+    public CredentialsController(@Qualifier("ControllerClient") CcOperations ccOperations, CredentialsStore<CredentialProperties> store) {
         this.ccOperations = ccOperations;
         this.store = store;
     }
@@ -73,9 +75,9 @@ public class CredentialsController {
             @RequestParam(required = true) UUID space,
             @RequestParam(required = true) String service) {
         return ccOperations.getSpace(space)
-                .map(s -> new ResponseEntity<>(store.getCredentialsInJson(service, s.getGuid()), HttpStatus.OK))
+                .map(s -> new ResponseEntity<>(getCredentialsInJson(service, s.getGuid()), HttpStatus.OK))
                 .onErrorReturn(er -> {
-                    LOGGER.error("Exception occurred:", er);
+                    LOG.error("Exception occurred:", er);
                     return new ResponseEntity<>(Collections.emptyMap(), HttpStatus.UNAUTHORIZED);
                 })
                 .toBlocking()
@@ -96,12 +98,12 @@ public class CredentialsController {
             @PathVariable UUID org,
             @RequestParam(required = true) String service) {
         return ccOperations.getSpaces(org)
-                .map(s -> store.getCredentialsInJson(service, s.getGuid()))
+                .map(s -> getCredentialsInJson(service, s.getGuid()))
                 .flatMap(json -> Observable.from(getFlattenedCredentials(json)))
                 .toList()
                 .map(instances -> new ResponseEntity<>(instances, HttpStatus.OK))
                 .onErrorReturn(er -> {
-                    LOGGER.error("Exception occurred:", er);
+                    LOG.error("Exception occurred:", er);
                     return new ResponseEntity<>(Collections.emptyList(), HttpStatus.UNAUTHORIZED);
                 })
                 .toBlocking()
@@ -115,5 +117,17 @@ public class CredentialsController {
                         .put("name", entry.getKey())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public Map<String, Map<String, String>> getCredentialsInJson(String serviceType, UUID spaceGuid) {
+        try {
+            return store.values(serviceType).stream().
+                    filter(s -> s.getSpaceGuid().equals(spaceGuid.toString())).
+                    collect(toMap(CredentialProperties::getName, CredentialProperties::retriveMapForm));
+
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return Collections.emptyMap();
     }
 }

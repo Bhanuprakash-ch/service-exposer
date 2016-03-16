@@ -21,10 +21,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
-import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.nats.registrator.RegistratorJob;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.List;
 import java.util.Vector;
@@ -42,10 +42,10 @@ public class ServicesRegistratorJobTests {
     private static final String SERVICE_TYPE_IPYTHON= "ipython";
 
     @Mock
-    private NatsMessagingQueue natsOps;
+    private MessagingQueue natsOps;
 
     @Mock
-    private CredentialsStore store;
+    private CredentialsStore<CredentialProperties> store;
 
     @Mock
     private CredentialProperties hueCredentials;
@@ -67,7 +67,7 @@ public class ServicesRegistratorJobTests {
 
         CredentialProperties entry = new CredentialProperties("","","","ipythonInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_IPYTHON)).thenReturn(credentials);
+        when(store.values(SERVICE_TYPE_IPYTHON)).thenReturn(credentials);
         sut.run();
         verify(natsOps).registerPathInGoRouter(entry);
     }
@@ -77,7 +77,7 @@ public class ServicesRegistratorJobTests {
 
         CredentialProperties entry = new CredentialProperties("","","","rstudioInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_RSTUDIO)).thenReturn(credentials);
+        when(store.values(SERVICE_TYPE_RSTUDIO)).thenReturn(credentials);
         sut.run();
         verify(natsOps).registerPathInGoRouter(entry);
     }

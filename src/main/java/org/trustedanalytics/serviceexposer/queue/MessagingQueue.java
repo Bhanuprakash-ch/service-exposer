@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.trustedanalytics.serviceexposer.nats.registrator;
+package org.trustedanalytics.serviceexposer.queue;
 
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
 
 public interface MessagingQueue {
 

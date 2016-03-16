@@ -32,8 +32,9 @@ import org.trustedanalytics.cloud.auth.AuthTokenRetriever;
 import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
 import org.trustedanalytics.cloud.cc.FeignClient;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
-import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.List;
 
@@ -72,8 +73,8 @@ public class RetriverConfig {
     }
 
     @Bean
-    protected CredentialsRetriver credentialsRetriver(NatsMessagingQueue natsOps, CredentialsStore redisCredentialsStore) {
-        return new CredentialsRetriver(ccPrivilegedClient(), redisCredentialsStore, natsOps, apiBaseUrl);
+    protected CredentialsRetriver credentialsRetriver(MessagingQueue natsOps, CredentialsStore<CredentialProperties> store) {
+        return new CredentialsRetriver(ccPrivilegedClient(), store, natsOps, apiBaseUrl);
     }
 
     @Bean

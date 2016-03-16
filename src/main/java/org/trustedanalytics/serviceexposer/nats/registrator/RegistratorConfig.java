@@ -15,26 +15,22 @@
  */
 package org.trustedanalytics.serviceexposer.nats.registrator;
 
-import nats.client.Nats;
-import nats.client.spring.NatsBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.ExternalTool;
 import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.ExternalTools;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.List;
 import java.util.Vector;
 
+
 @Configuration
 public class RegistratorConfig {
-
-    @Value("${nats.connection}")
-    private String natsUri;
 
     @Value("${nats.registrating.triggerExpression}")
     private String natsTriggerExpression;
@@ -44,18 +40,6 @@ public class RegistratorConfig {
 
     @Autowired
     private ExternalTools externalTools;
-
-    @Bean
-    public Nats nats(ApplicationEventPublisher applicationEventPublisher) {
-        return new NatsBuilder(applicationEventPublisher)
-                .addHost(natsUri)
-                .connect();
-    }
-
-    @Bean
-    protected NatsMessagingQueue natsOps(Nats nats) {
-        return new NatsMessagingQueue(nats);
-    }
 
     @Bean
     protected List<CredentialProperties> visualisationToolsCredentials() {
@@ -70,9 +54,8 @@ public class RegistratorConfig {
         return visualisationTools;
     }
 
-
     @Bean
-    public RegistratorJob registratorJob(NatsMessagingQueue nats, CredentialsStore store) {
+    public RegistratorJob registratorJob(MessagingQueue nats, CredentialsStore<CredentialProperties> store) {
         return new RegistratorJob(nats, store, serviceTypes, visualisationToolsCredentials());
     }
 
@@ -81,3 +64,5 @@ public class RegistratorConfig {
         return new RegistratorScheduler(registratorJob, natsTriggerExpression);
     }
 }
+
+

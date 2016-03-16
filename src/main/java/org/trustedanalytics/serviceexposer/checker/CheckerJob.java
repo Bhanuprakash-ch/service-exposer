@@ -19,7 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.retriver.CredentialsRetriver;
 import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
 
@@ -32,20 +33,20 @@ public class CheckerJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(CheckerJob.class);
 
-    private final CredentialsStore credentialsStore;
+    private final CredentialsStore<CredentialProperties> store;
     private final CredentialsRetriver credentialsRetriver;
     private final ServicesRetriver servicesRetriver;
     private final List<String> serviceTypes;
 
     @Autowired
-    public CheckerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore store, List<String> serviceTypes) {
+    public CheckerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore<CredentialProperties> store, List<String> serviceTypes) {
         this.servicesRetriver = servicesRetriver;
         this.credentialsRetriver = credentialsRetriver;
-        this.credentialsStore = store;
+        this.store = store;
         this.serviceTypes = serviceTypes;
 
         for (String serviceType : serviceTypes) {
-            credentialsStore.cleanStore(serviceType);
+            store.cleanStore(serviceType);
         }
     }
 
@@ -69,7 +70,7 @@ public class CheckerJob {
                 .map(instance -> instance.getMetadata().getGuid().toString())
                 .collect(Collectors.toSet());
 
-        for (String serviceInstanceGuid : credentialsStore.getSurplusServicesGuids(serviceType, servicesGuids)) {
+        for (String serviceInstanceGuid : store.getSurplusServicesGuids(serviceType, servicesGuids)) {
             credentialsRetriver.deleteServiceInstance(serviceType, UUID.fromString(serviceInstanceGuid));
         }
     }

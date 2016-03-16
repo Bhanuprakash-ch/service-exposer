@@ -25,7 +25,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcMetadata;
 import org.trustedanalytics.serviceexposer.checker.CheckerJob;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.retriver.CredentialsRetriver;
 import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
 
@@ -50,7 +51,7 @@ public class CheckerJobTests {
     @Mock
     private CredentialsRetriver credentialsRetriver;
     @Mock
-    private CredentialsStore credentialsStore;
+    private CredentialsStore<CredentialProperties> credentialsStore;
 
     private List<String> serviceTypes;
 

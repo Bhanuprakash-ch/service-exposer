@@ -16,16 +16,15 @@
 package org.trustedanalytics.serviceexposer;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
-import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.nats.registrator.RegistratorJob;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.List;
 import java.util.Vector;
@@ -43,10 +42,10 @@ public class ToolsRegistratorJobTests {
     private static final String SERVICE_TYPE_IPYTHON= "ipython";
 
     @Mock
-    private NatsMessagingQueue natsOps;
+    private MessagingQueue natsOps;
 
     @Mock
-    private CredentialsStore store;
+    private CredentialsStore<CredentialProperties> store;
 
     @Mock
     private CredentialProperties hueCredentials;
@@ -67,16 +66,16 @@ public class ToolsRegistratorJobTests {
 
     @Test
     public void testRegistratorJobRunMethodForHueService(){
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_IPYTHON)).thenReturn(new Vector<CredentialProperties>());
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_RSTUDIO)).thenReturn(new Vector<CredentialProperties>());
+        when(store.values(SERVICE_TYPE_IPYTHON)).thenReturn(new Vector<CredentialProperties>());
+        when(store.values(SERVICE_TYPE_RSTUDIO)).thenReturn(new Vector<CredentialProperties>());
         sut.run();
         verify(natsOps).registerPathInGoRouter(hueEntry);
     }
 
     @Test
     public void testRegistratorJobRunMethodForArcadiaService(){
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_IPYTHON)).thenReturn(new Vector<CredentialProperties>());
-        when(store.getAllCredentialsEntries(SERVICE_TYPE_RSTUDIO)).thenReturn(new Vector<CredentialProperties>());
+        when(store.values(SERVICE_TYPE_IPYTHON)).thenReturn(new Vector<CredentialProperties>());
+        when(store.values(SERVICE_TYPE_RSTUDIO)).thenReturn(new Vector<CredentialProperties>());
         sut.run();
         verify(natsOps).registerPathInGoRouter(arcadiaEntry);
     }

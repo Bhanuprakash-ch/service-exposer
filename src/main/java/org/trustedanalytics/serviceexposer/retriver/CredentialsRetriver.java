@@ -21,9 +21,9 @@ import org.trustedanalytics.cloud.cc.api.CcExtendedServiceInstance;
 import org.trustedanalytics.cloud.cc.api.CcNewServiceKey;
 import org.trustedanalytics.cloud.cc.api.CcOperations;
 import org.trustedanalytics.cloud.cc.api.CcServiceKey;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
-import org.trustedanalytics.serviceexposer.nats.registrator.NatsMessagingQueue;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.Map;
 import java.util.Optional;
@@ -34,11 +34,11 @@ public class CredentialsRetriver {
     private static final Logger LOG = LoggerFactory.getLogger(CredentialsRetriver.class);
 
     private CcOperations ccClient;
-    private CredentialsStore store;
-    private NatsMessagingQueue natsOps;
+    private CredentialsStore<CredentialProperties> store;
+    private MessagingQueue natsOps;
     private String apiBaseUrl;
 
-    public CredentialsRetriver(CcOperations ccClient, CredentialsStore store, NatsMessagingQueue natsOps, String apiBaseUrl) {
+    public CredentialsRetriver(CcOperations ccClient, CredentialsStore<CredentialProperties> store, MessagingQueue natsOps, String apiBaseUrl) {
         this.ccClient = ccClient;
         this.store = store;
         this.natsOps = natsOps;
@@ -61,7 +61,7 @@ public class CredentialsRetriver {
                 ccClient.deleteServiceKey(serviceInstanceKeyGuid);
                 LOG.info("service key deleted: " + serviceInstanceKeyGuid);
 
-                store.put(serviceType, credentials);
+                store.put(serviceType, serviceInstanceGuid, credentials);
                 natsOps.registerPathInGoRouter(credentials);
             }
         } catch (Exception e) {

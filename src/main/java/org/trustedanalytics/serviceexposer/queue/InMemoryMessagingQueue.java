@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.trustedanalytics.serviceexposer.queue;
 
-package org.trustedanalytics.serviceexposer.nats.registrator;
-
-import nats.client.Nats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
 
-public class NatsMessagingQueue implements MessagingQueue {
+public class InMemoryMessagingQueue implements MessagingQueue {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NatsMessagingQueue.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InMemoryMessagingQueue.class);
 
-    private static final String NATS_ROUTE_REGISTER = "router.register";
-    private static final String NATS_ROUTE_UNREGISTER = "router.unregister";
-
-    private Nats nats;
-
-    public NatsMessagingQueue(Nats nats) {
-        this.nats = nats;
+    public InMemoryMessagingQueue() {
     }
 
     @Override
     public void registerPathInGoRouter(CredentialProperties serviceInfo) {
-        nats.publish(NATS_ROUTE_REGISTER, serviceInfo.toString());
-        LOG.info("route registered: {}:{} -> {}",
+        LOG.info("in-memory nats route registered: {}:{} -> {}",
                 serviceInfo.getIpAddress(),
                 serviceInfo.getPort(),
                 serviceInfo.getHostName()
@@ -46,8 +37,7 @@ public class NatsMessagingQueue implements MessagingQueue {
 
     @Override
     public void unregisterPathInGoRouter(CredentialProperties serviceInfo) {
-        nats.publish(NATS_ROUTE_UNREGISTER, serviceInfo.toString());
-        LOG.info("route unregistered: {} -> {}:{}",
+        LOG.info("in-memory nats route unregistered: {} -> {}:{}",
                 serviceInfo.getHostName(),
                 serviceInfo.getIpAddress(),
                 serviceInfo.getPort()

@@ -17,8 +17,9 @@ package org.trustedanalytics.serviceexposer.nats.registrator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trustedanalytics.serviceexposer.cloud.CredentialProperties;
-import org.trustedanalytics.serviceexposer.cloud.CredentialsStore;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
+import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
+import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
 import java.util.List;
 
@@ -27,12 +28,12 @@ public class RegistratorJob {
     private static final Logger LOG = LoggerFactory.getLogger(RegistratorJob.class);
     private static final String NATS_ROUTE_REGISTER = "router.register";
 
-    private NatsMessagingQueue natsOps;
-    private CredentialsStore store;
+    private MessagingQueue natsOps;
+    private CredentialsStore<CredentialProperties> store;
     private List<String> serviceTypes;
     private List<CredentialProperties> externalTools;
 
-    public RegistratorJob(NatsMessagingQueue natsOps, CredentialsStore store, List<String> serviceTypes, List<CredentialProperties> toolsCredentials) {
+    public RegistratorJob(MessagingQueue natsOps, CredentialsStore<CredentialProperties> store, List<String> serviceTypes, List<CredentialProperties> toolsCredentials) {
         this.natsOps = natsOps;
         this.store = store;
         this.serviceTypes = serviceTypes;
@@ -40,13 +41,12 @@ public class RegistratorJob {
     }
 
     public void run() {
-
         for (CredentialProperties entry : externalTools) {
-                natsOps.registerPathInGoRouter(entry);
+            natsOps.registerPathInGoRouter(entry);
         }
 
         for (String serviceType : serviceTypes) {
-            for (CredentialProperties entry : store.getAllCredentialsEntries(serviceType)) {
+            for (CredentialProperties entry : store.values(serviceType)) {
                 natsOps.registerPathInGoRouter(entry);
             }
         }
