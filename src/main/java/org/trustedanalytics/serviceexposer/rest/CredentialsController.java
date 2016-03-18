@@ -60,7 +60,7 @@ public class CredentialsController {
 
     @ApiOperation(
             value = "Returns list of all service instance credentials of given type for given space.",
-            notes = "Privilege level: Consumer of this endpoint must be a member of specified space"
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified space based on valid access token"
     )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = ResponseEntity.class),
@@ -84,7 +84,7 @@ public class CredentialsController {
 
     @ApiOperation(
             value = "Returns list of all service instance credentials of given type for given organization.",
-            notes = "Privilege level: Consumer of this endpoint must be a member of specified organization"
+            notes = "Privilege level: Consumer of this endpoint must be a member of specified organization based on valid access token"
     )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = ResponseEntity.class),
