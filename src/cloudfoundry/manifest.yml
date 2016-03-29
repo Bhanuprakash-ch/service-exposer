@@ -1,7 +1,7 @@
 ---
 applications:
 - name: service-exposer
-  memory: 512M
+  memory: 640M
   instances: 1
   host: service-exposer
   path: target/service-exposer-${version}.jar
