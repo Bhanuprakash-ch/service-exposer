@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Optional;
+import java.util.Collections;
 
 public class InMemoryCredentialsStore<T> implements CredentialsStore<T> {
 
@@ -54,36 +56,41 @@ public class InMemoryCredentialsStore<T> implements CredentialsStore<T> {
 
     @Override
     public void put(String serviceType, UUID serviceInstanceGuid, T code) {
-        hashOps.get(serviceType).put(serviceInstanceGuid.toString(), code);
-        LOG.info("in-memory redis entry saved: " + serviceInstanceGuid);
+        Map<String, T> hashOp = hashOps.get(serviceType);
+        if(hashOp != null) {
+            hashOp.put(serviceInstanceGuid.toString(), code);
+            LOG.info("in-memory redis entry saved: " + serviceInstanceGuid);
+        } else {
+            LOG.warn("in-memory redis entry not saved: service type not found");
+        };
     }
 
     @Override
     public void delete(String serviceType, UUID serviceInstanceGuid) {
-        hashOps.get(serviceType).remove(serviceInstanceGuid.toString());
+        hashOps.getOrDefault(serviceType, Collections.emptyMap()).remove(serviceInstanceGuid.toString());
         LOG.info("in-memory redis entry deleted: " + serviceInstanceGuid.toString());
     }
 
     @Override
     public Boolean exists(String serviceType, UUID serviceInstanceGuid) {
-        T hashEntry = hashOps.get(serviceType).get(serviceInstanceGuid.toString());
+        T hashEntry = hashOps.getOrDefault(serviceType, Collections.emptyMap()).get(serviceInstanceGuid.toString());
         return (hashEntry != null) ? true : false;
     }
 
     @Override
     public T get(String serviceType, UUID serviceInstanceGuid) {
-        return hashOps.get(serviceType).get(serviceInstanceGuid.toString());
+        return hashOps.getOrDefault(serviceType, Collections.emptyMap()).get(serviceInstanceGuid.toString());
     }
 
     @Override
     public Set<String> getSurplusServicesGuids(String serviceType, Set<String> retrievedServiceGuids) {
-        Set<String> serviceInstancesToDeleted = new HashSet<String>(this.hashOps.get(serviceType).keySet());
+        Set<String> serviceInstancesToDeleted = new HashSet<String>(this.hashOps.getOrDefault(serviceType, Collections.emptyMap()).keySet());
         serviceInstancesToDeleted.removeAll(retrievedServiceGuids);
         return serviceInstancesToDeleted;
     }
 
     @Override
     public List<T> values(String serviceType) {
-        return new ArrayList<T>(hashOps.get(serviceType).values());
+        return new ArrayList<T>(hashOps.getOrDefault(serviceType, Collections.emptyMap()).values());
     }
 }
