@@ -63,3 +63,4 @@ endpoints.enabled: false
 endpoints.health.enabled: true
 
 spring.profiles.active: in-memory
+ENABLE_RETRIEVING_OF_CREDS_ONLY_ONCE: true

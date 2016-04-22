@@ -28,6 +28,7 @@ import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 public class CredentialsRetriver {
 
@@ -37,12 +38,18 @@ public class CredentialsRetriver {
     private CredentialsStore<CredentialProperties> store;
     private MessagingQueue natsOps;
     private String apiBaseUrl;
+    private BiConsumer<String, CcExtendedServiceInstance> credentialsRetrieveFailedStrategy;
 
-    public CredentialsRetriver(CcOperations ccClient, CredentialsStore<CredentialProperties> store, MessagingQueue natsOps, String apiBaseUrl) {
+    public CredentialsRetriver(CcOperations ccClient, CredentialsStore<CredentialProperties> store, MessagingQueue natsOps, String apiBaseUrl, boolean retrieveCredentialsOnlyOnceStrategyEnabled) {
         this.ccClient = ccClient;
         this.store = store;
         this.natsOps = natsOps;
         this.apiBaseUrl = apiBaseUrl;
+        this.credentialsRetrieveFailedStrategy = (type,serviceInstance)->{};
+
+        if(retrieveCredentialsOnlyOnceStrategyEnabled){
+            this.credentialsRetrieveFailedStrategy = (type,serviceInstance)->store.put(type,serviceInstance.getMetadata().getGuid(),saveMalformedCredentials(serviceInstance));
+        }
     }
 
     public void saveCredentialsUsingEnvs(String serviceType, CcExtendedServiceInstance serviceInstance) {
@@ -65,6 +72,7 @@ public class CredentialsRetriver {
                 natsOps.registerPathInGoRouter(credentials);
             }
         } catch (Exception e) {
+            credentialsRetrieveFailedStrategy.accept(serviceType, serviceInstance);
             LOG.error("failed to get credentials from service instance: " + serviceInstanceGuid, e);
         }
     }
@@ -96,6 +104,14 @@ public class CredentialsRetriver {
         String username = Optional.ofNullable(credentials.get("username")).orElse("");
         String password = Optional.ofNullable(credentials.get("password")).orElse("");
         return new CredentialProperties(true, domainName, instanceGuid, spaceGuid, serviceName, ipAddress, port, externalUrl, username, password);
+    }
+
+    private CredentialProperties saveMalformedCredentials(CcExtendedServiceInstance serviceInstance) {
+        String domainName = apiBaseUrl.split("api")[1];
+        String instanceGuid = serviceInstance.getMetadata().getGuid().toString();
+        String spaceGuid = serviceInstance.getEntity().getSpaceGuid().toString();
+        String serviceName = serviceInstance.getEntity().getName();
+        return new CredentialProperties(false, domainName, instanceGuid, spaceGuid, serviceName, "", "", "", "", "");
     }
 
     public void deleteServiceInstance(String serviceType, UUID serviceInstanceGuid) {

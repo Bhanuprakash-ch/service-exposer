@@ -47,6 +47,9 @@ public class RetriverConfig {
     @Value("${oauth.resource:/}")
     private String apiBaseUrl;
 
+    @Value("${ENABLE_RETRIEVING_OF_CREDS_ONLY_ONCE}")
+    private boolean retireveStrategy;
+
     @Value("#{'${restrictedServicesNames}'.split(',')}")
     private List<String> restricedNames;
 
@@ -74,7 +77,7 @@ public class RetriverConfig {
 
     @Bean
     protected CredentialsRetriver credentialsRetriver(MessagingQueue natsOps, CredentialsStore<CredentialProperties> store) {
-        return new CredentialsRetriver(ccPrivilegedClient(), store, natsOps, apiBaseUrl);
+        return new CredentialsRetriver(ccPrivilegedClient(), store, natsOps, apiBaseUrl, retireveStrategy);
     }
 
     @Bean
