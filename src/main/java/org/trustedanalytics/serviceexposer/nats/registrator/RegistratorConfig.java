@@ -25,8 +25,8 @@ import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.Extern
 import org.trustedanalytics.serviceexposer.nats.registrator.externaltools.ExternalTools;
 import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 
 @Configuration
@@ -43,12 +43,12 @@ public class RegistratorConfig {
 
     @Bean
     protected List<CredentialProperties> visualisationToolsCredentials() {
-        List<CredentialProperties> visualisationTools = new Vector<>();
+        List<CredentialProperties> visualisationTools = new ArrayList<>();
         for (ExternalTool entry : externalTools.getVisualizations()) {
             if (entry.isAvailable() && !entry.getHost().contains("None")) {
                 String[] ipAndPort = entry.getHost().split(":");
                 String url = entry.getUrl().split("/")[2];
-                visualisationTools.add(new CredentialProperties("", "", "", "", ipAndPort[0], ipAndPort[1], url, "", ""));
+                visualisationTools.add(new CredentialProperties(true,"", "", "", "", ipAndPort[0], ipAndPort[1], url, "", ""));
             }
         }
         return visualisationTools;

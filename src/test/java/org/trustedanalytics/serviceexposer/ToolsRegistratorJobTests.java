@@ -59,8 +59,8 @@ public class ToolsRegistratorJobTests {
     @Before
     public void setup() {
         serviceTypes = ImmutableList.of(SERVICE_TYPE_RSTUDIO, SERVICE_TYPE_IPYTHON);
-        hueEntry = new CredentialProperties("","","","hueInstance","","","","","");
-        arcadiaEntry = new CredentialProperties("","","","arcadiaInstance","","","","","");
+        hueEntry = new CredentialProperties(true,"","","","hueInstance","","","","","");
+        arcadiaEntry = new CredentialProperties(true,"","","","arcadiaInstance","","","","","");
         sut = new RegistratorJob(natsOps, store,serviceTypes,ImmutableList.of(hueEntry,arcadiaEntry));
     }
 

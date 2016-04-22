@@ -52,7 +52,7 @@ public class MessagingConfig {
     public static class InMemoryMessagingConfig {
 
         @Bean
-        MessagingQueue InMemoryQueueOps() {
+        MessagingQueue inMemoryQueueOps() {
             return new InMemoryMessagingQueue();
         }
     }

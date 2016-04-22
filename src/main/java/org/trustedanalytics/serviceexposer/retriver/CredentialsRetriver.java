@@ -65,8 +65,7 @@ public class CredentialsRetriver {
                 natsOps.registerPathInGoRouter(credentials);
             }
         } catch (Exception e) {
-            LOG.error("failed to get credentials from service instance: " + serviceInstanceGuid);
-            LOG.error(e.getMessage(), e);
+            LOG.error("failed to get credentials from service instance: " + serviceInstanceGuid, e);
         }
     }
 
@@ -96,7 +95,7 @@ public class CredentialsRetriver {
         String externalUrl = Optional.ofNullable(credentials.get("dashboardUrl")).orElse("");
         String username = Optional.ofNullable(credentials.get("username")).orElse("");
         String password = Optional.ofNullable(credentials.get("password")).orElse("");
-        return new CredentialProperties(domainName, instanceGuid, spaceGuid, serviceName, ipAddress, port, externalUrl, username, password);
+        return new CredentialProperties(true, domainName, instanceGuid, spaceGuid, serviceName, ipAddress, port, externalUrl, username, password);
     }
 
     public void deleteServiceInstance(String serviceType, UUID serviceInstanceGuid) {

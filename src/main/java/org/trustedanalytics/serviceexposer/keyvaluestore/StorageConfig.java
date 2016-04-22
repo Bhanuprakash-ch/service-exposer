@@ -68,7 +68,7 @@ public class StorageConfig {
     @Configuration
     public static class InMemoryStorageConfig {
         @Bean
-        CredentialsStore<CredentialProperties> InMemorycredentialsStore() {
+        CredentialsStore<CredentialProperties> inMemorycredentialsStore() {
             return new InMemoryCredentialsStore<CredentialProperties>();
         }
     }

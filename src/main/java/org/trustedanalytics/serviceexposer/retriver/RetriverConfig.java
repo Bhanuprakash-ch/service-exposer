@@ -79,7 +79,7 @@ public class RetriverConfig {
 
     @Bean
     protected ServicesRetriver servicesRetriver() {
-        return new ServicesRetriver(ccPrivilegedClient(), apiBaseUrl, restricedNames);
+        return new ServicesRetriver(ccPrivilegedClient(), restricedNames);
     }
 
     @Bean

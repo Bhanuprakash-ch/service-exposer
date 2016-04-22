@@ -123,6 +123,7 @@ public class CredentialsController {
         try {
             return store.values(serviceType).stream().
                     filter(s -> s.getSpaceGuid().equals(spaceGuid.toString())).
+                    filter(f -> f.isCredentialsExtracted()).
                     collect(toMap(CredentialProperties::getName, CredentialProperties::retriveMapForm));
 
         } catch (Exception e) {

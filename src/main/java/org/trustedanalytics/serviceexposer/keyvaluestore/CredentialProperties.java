@@ -17,15 +17,12 @@ package org.trustedanalytics.serviceexposer.keyvaluestore;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
 
 @Data
 public class CredentialProperties {
-    private static final Logger LOG = LoggerFactory.getLogger(CredentialProperties.class);
 
     private String serviceInstaceGuid;
     private String spaceGuid;
@@ -35,12 +32,14 @@ public class CredentialProperties {
     private String port;
     private String login;
     private String password;
+    private boolean credentialsExtracted;
 
-    public CredentialProperties(String domainName, String instaceGuid, String spaceGuid, String name, String ipAdress, String portNumber, String hostName, String login, String password) {
+    public CredentialProperties(boolean credentialsExtraced, String domainName, String instaceGuid, String spaceGuid, String name, String ipAdress, String portNumber, String hostName, String login, String password) {
+        this.credentialsExtracted = credentialsExtraced;
         this.serviceInstaceGuid = instaceGuid;
         this.spaceGuid = spaceGuid;
         this.name = name;
-        if (hostName.equals("")) {
+        if ("".equals(hostName)) {
             this.hostName = name.replaceAll("[^A-Za-z0-9]", "_") + "-" + serviceInstaceGuid + domainName;
         } else {
             this.hostName = hostName;

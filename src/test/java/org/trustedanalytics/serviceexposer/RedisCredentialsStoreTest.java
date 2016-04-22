@@ -75,7 +75,7 @@ public class RedisCredentialsStoreTest {
     @Test
     public void testServiceInstanceExists() {
         UUID randomGuid = UUID.randomUUID();
-        CredentialProperties existingEntry = new CredentialProperties("",randomGuid.toString(),"","","","","","","");
+        CredentialProperties existingEntry = new CredentialProperties(true,"",randomGuid.toString(),"","","","","","","");
         when(mockHashOps.get(SERVICE_TYPE, randomGuid.toString())).thenReturn(existingEntry);
         boolean eligible = sut.exists(SERVICE_TYPE, randomGuid);
         assertEquals(true, eligible);
@@ -94,7 +94,7 @@ public class RedisCredentialsStoreTest {
         when(mockCredentialsProperties.retriveMapForm()).thenReturn(testEntry);
         when(mockCredentialsProperties.getSpaceGuid()).thenReturn(randomSpaceGuid.toString());
 
-        CredentialProperties existingEntry = new CredentialProperties("",randomServiceGuid,randomSpaceGuid.toString(),serviceName,"","","","","");
+        CredentialProperties existingEntry = new CredentialProperties(true,"",randomServiceGuid,randomSpaceGuid.toString(),serviceName,"","","","","");
 
         List<Object> serviceEntries = ImmutableList.of(existingEntry);
         when(mockHashOps.get(SERVICE_TYPE, guid.toString())).thenReturn(existingEntry);

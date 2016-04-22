@@ -15,8 +15,6 @@
  */
 package org.trustedanalytics.serviceexposer.nats.registrator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
 import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
 import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
@@ -24,9 +22,6 @@ import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 import java.util.List;
 
 public class RegistratorJob {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RegistratorJob.class);
-    private static final String NATS_ROUTE_REGISTER = "router.register";
 
     private MessagingQueue natsOps;
     private CredentialsStore<CredentialProperties> store;

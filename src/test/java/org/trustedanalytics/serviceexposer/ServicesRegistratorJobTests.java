@@ -56,7 +56,7 @@ public class ServicesRegistratorJobTests {
     @Before
     public void setup() {
         serviceTypes = ImmutableList.of(SERVICE_TYPE_RSTUDIO, SERVICE_TYPE_IPYTHON);
-        CredentialProperties hueCredentials = new CredentialProperties("","","","","","","","","");
+        CredentialProperties hueCredentials = new CredentialProperties(true,"","","","","","","","","");
         List<CredentialProperties> credentialsList = new Vector<>();
         credentialsList.add(hueCredentials);
         sut = new RegistratorJob(natsOps, store,serviceTypes,credentialsList);
@@ -65,7 +65,7 @@ public class ServicesRegistratorJobTests {
     @Test
     public void testRegistratorJobRunMethodForIPythonServices(){
 
-        CredentialProperties entry = new CredentialProperties("","","","ipythonInstance","","","","","");
+        CredentialProperties entry = new CredentialProperties(true,"","","","ipythonInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
         when(store.values(SERVICE_TYPE_IPYTHON)).thenReturn(credentials);
         sut.run();
@@ -75,7 +75,7 @@ public class ServicesRegistratorJobTests {
     @Test
     public void testRegistratorJobRunMethodForRStudioServices(){
 
-        CredentialProperties entry = new CredentialProperties("","","","rstudioInstance","","","","","");
+        CredentialProperties entry = new CredentialProperties(true,"","","","rstudioInstance","","","","","");
         List<CredentialProperties> credentials = ImmutableList.of(entry);
         when(store.values(SERVICE_TYPE_RSTUDIO)).thenReturn(credentials);
         sut.run();

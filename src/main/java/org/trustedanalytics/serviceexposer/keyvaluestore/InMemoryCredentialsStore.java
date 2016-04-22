@@ -25,14 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Optional;
 import java.util.Collections;
 
 public class InMemoryCredentialsStore<T> implements CredentialsStore<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisCredentialsStore.class);
 
-    final private Map<String, Map<String, T>> hashOps;
+    private final Map<String, Map<String, T>> hashOps;
 
     public InMemoryCredentialsStore() {
         this.hashOps = new HashMap<String, Map<String, T>>();
@@ -62,7 +61,7 @@ public class InMemoryCredentialsStore<T> implements CredentialsStore<T> {
             LOG.info("in-memory redis entry saved: " + serviceInstanceGuid);
         } else {
             LOG.warn("in-memory redis entry not saved: service type not found");
-        };
+        }
     }
 
     @Override

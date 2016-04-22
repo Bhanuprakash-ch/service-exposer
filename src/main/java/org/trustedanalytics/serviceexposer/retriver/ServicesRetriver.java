@@ -36,12 +36,10 @@ public class ServicesRetriver {
     private static final Logger LOG = LoggerFactory.getLogger(ServicesRetriver.class);
     private static final String successfullState = "succeeded";
     private CcOperations ccClient;
-    private String apiBaseUrl;
     private List<String> restrictedNames;
 
-    public ServicesRetriver(CcOperations ccClient, String apiBaseUrl, List<String> restirctedNames) {
+    public ServicesRetriver(CcOperations ccClient, List<String> restirctedNames) {
         this.ccClient = ccClient;
-        this.apiBaseUrl = apiBaseUrl;
         this.restrictedNames = restirctedNames;
     }
 

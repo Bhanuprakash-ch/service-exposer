@@ -22,7 +22,6 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialProperties;
 import org.trustedanalytics.serviceexposer.keyvaluestore.CredentialsStore;
-import org.trustedanalytics.serviceexposer.queue.MessagingQueue;
 import org.trustedanalytics.serviceexposer.retriver.CredentialsRetriver;
 import org.trustedanalytics.serviceexposer.retriver.ServicesRetriver;
 
@@ -44,7 +43,7 @@ public class CheckerConfig {
     }
 
     @Bean
-    public CheckerJob checkerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore<CredentialProperties> store, MessagingQueue nats) {
+    public CheckerJob checkerJob(ServicesRetriver servicesRetriver, CredentialsRetriver credentialsRetriver, CredentialsStore<CredentialProperties> store) {
         return new CheckerJob(servicesRetriver, credentialsRetriver, store, serviceTypes);
     }
 
