@@ -34,7 +34,7 @@ import java.util.Set;
 public class ServicesRetriver {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServicesRetriver.class);
-
+    private static final String successfullState = "succeeded";
     private CcOperations ccClient;
     private String apiBaseUrl;
     private List<String> restrictedNames;
@@ -52,8 +52,9 @@ public class ServicesRetriver {
             for (CcExtendedServicePlan servicePlan : getServicePlans(serviceType)) {
                 String planGuid = servicePlan.getMetadata().getGuid().toString();
                 ccClient.getExtendedServiceInstances(
-                        FilterQuery.from(Filter.SERVICE_PLAN_GUID, FilterOperator.EQ, planGuid)
-                ).filter(service -> !restrictedNames.contains(service.getEntity().getName()))
+                        FilterQuery.from(Filter.SERVICE_PLAN_GUID, FilterOperator.EQ, planGuid))
+                        .filter(service -> (service.getEntity().getLastOperation().toString().contains("state=" + successfullState)))
+                        .filter(service -> !restrictedNames.contains(service.getEntity().getName()))
                         .forEach(serviceInstance ->
                                         allServiceGuidsForGivenType.add(
                                                 serviceInstance
