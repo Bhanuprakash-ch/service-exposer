@@ -1,3 +1,5 @@
+[![Dependency Status](https://www.versioneye.com/user/projects/573a15e3a0ca35004cf783ba/badge.svg?style=flat)](https://www.versioneye.com/user/projects/573a15e3a0ca35004cf783ba)
+
 Service exposer
 ==========
 
