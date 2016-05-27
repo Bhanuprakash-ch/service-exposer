@@ -82,6 +82,36 @@ public class RedisCredentialsStoreTest {
     }
 
     @Test
+    public void testGetCredentialsGeneration() {
+        String malformedName1 = "my--___+!^!)--(*&instance";
+        String malformedName2 = "-my--___+!^!)--(*&instance-";
+        String malformedName3 = "my--___+!^!)--(*&instance-";
+        String malformedName4 = "-my--___+!^!)--(*&instance";
+        String malformedName5 = "-----my--+!^!)--(&instance";
+        String malformedName6 = "&$%&%$&my--+!^!)--(*&instance";
+
+        String domain = ".daily-nokrb.gotapass.eu";
+        String randomServiceGuid = UUID.randomUUID().toString();
+
+        String properName = "my-instance";
+        String properUrl = properName+"-"+randomServiceGuid+domain;
+
+        CredentialProperties entry1 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName1,"","","","","");
+        CredentialProperties entry2 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName2,"","","","","");
+        CredentialProperties entry3 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName3,"","","","","");
+        CredentialProperties entry4 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName4,"","","","","");
+        CredentialProperties entry5 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName5,"","","","","");
+        CredentialProperties entry6 = new CredentialProperties(true,domain,randomServiceGuid,randomServiceGuid,malformedName6,"","","","","");
+
+        assertEquals(properUrl, entry1.getHostName());
+        assertEquals(properUrl, entry2.getHostName());
+        assertEquals(properUrl, entry3.getHostName());
+        assertEquals(properUrl, entry4.getHostName());
+        assertEquals(properUrl, entry5.getHostName());
+        assertEquals(properUrl, entry6.getHostName());
+    }
+
+    @Test
     public void testGetCredentialsInJSON() {
         String serviceName = "tested";
         UUID guid = UUID.randomUUID();

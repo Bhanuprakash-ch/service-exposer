@@ -40,7 +40,8 @@ public class CredentialProperties {
         this.spaceGuid = spaceGuid;
         this.name = name;
         if ("".equals(hostName)) {
-            this.hostName = name.replaceAll("[^A-Za-z0-9]", "_") + "-" + serviceInstaceGuid + domainName;
+            String sanitizedServiceName = this.name.replaceAll("[^A-Za-z0-9]+", "-").replaceAll("^-|-$","");
+            this.hostName = sanitizedServiceName + "-" + serviceInstaceGuid + domainName;
         } else {
             this.hostName = hostName;
         }
